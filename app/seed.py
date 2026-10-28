@@ -63,6 +63,53 @@ def _image(db: Session, name: str) -> int:
     return image.id
 
 
+# Textos de exemplo. Nome e marca são da Brunoise Gastronomia; a história, a chef e os
+# eventos são ilustrativos e devem ser trocados pela dona no painel.
+DEMO_TEXTS = {
+    "business_name": "Brunoise Gastronomia",
+    "tagline": "Gastronomia para os dias mais importantes",
+    "hero_title": "Cada detalhe feito com cuidado, cada sabor pensado para você.",
+    "hero_text": (
+        "Casamentos, aniversários e eventos de empresa com cardápio feito sob medida, "
+        "do primeiro canapé ao último cafezinho."
+    ),
+    "owner_name": "Helena Duarte",
+    "owner_role": "Chef e fundadora",
+    "bio": (
+        "Cresci na cozinha da minha avó, ajudando a abrir massa antes de saber escrever o "
+        "meu nome. Foi lá que aprendi que comida boa é a que faz as pessoas ficarem mais um "
+        "pouco à mesa.\n\n"
+        "Me formei em Gastronomia, trabalhei em restaurantes e cozinhas de hotel e, em cada "
+        "evento, pensava em como seria servir aquela comida com o carinho de casa. Hoje cuido "
+        "pessoalmente de cada cardápio: converso com você, provo junto e acompanho a festa do "
+        "início ao fim."
+    ),
+    "history_title": "Por que Brunoise",
+    "history": (
+        "Brunoise é um dos cortes mais delicados da cozinha francesa: legumes em cubinhos de "
+        "poucos milímetros, todos do mesmo tamanho. É um corte que não aceita pressa e pede "
+        "técnica, paciência e atenção a cada pedaço.\n\n"
+        "Foi esse cuidado que escolhemos como nome. Cada evento é preparado do mesmo jeito: "
+        "ouvindo você, montando o cardápio junto e cuidando de cada detalhe, da montagem da "
+        "mesa ao último prato servido."
+    ),
+    "founded_year": None,
+    "city": "",
+    "phone": "",
+    "email": "",
+    "instagram": "",
+}
+OLD_DEMO_NAME = "Buffet Alecrim"
+
+
+def _refresh_old_demo(db: Session) -> None:
+    """Demonstração criada antes da marca Brunoise: troca só os textos (fotos ficam)."""
+    site = db.get(SiteContent, SITE_ID)
+    if site is not None and site.business_name == OLD_DEMO_NAME:
+        for field, value in DEMO_TEXTS.items():
+            setattr(site, field, value)
+
+
 def _site_is_blank(db: Session) -> bool:
     """Sem textos, fotos nem eventos: só o conteúdo padrão criado na primeira visita."""
     site = db.get(SiteContent, SITE_ID)
@@ -80,6 +127,7 @@ def _site_is_blank(db: Session) -> bool:
 
 def seed_demo(db: Session, today: date, iterations: int) -> None:
     if db.scalar(select(User.id).where(User.email == DEMO_OWNER[0])) is not None:
+        _refresh_old_demo(db)
         return  # a demonstração já existe: reiniciar o servidor não duplica nada
     if not _site_is_blank(db):
         return  # o site já tem conteúdo de verdade: a demonstração não apaga nada
@@ -107,41 +155,7 @@ def seed_demo(db: Session, today: date, iterations: int) -> None:
     db.add(
         SiteContent(
             id=SITE_ID,
-            business_name="Buffet Alecrim",
-            tagline="Comida feita em casa para os dias mais importantes",
-            hero_title="Sua festa com sabor de casa de vó, e serviço de restaurante.",
-            hero_text=(
-                "Casamentos, aniversários e eventos de empresa com cardápio feito para "
-                "você, do primeiro canapé ao último cafezinho."
-            ),
-            owner_name="Helena Duarte",
-            owner_role="Chef e fundadora",
-            bio=(
-                "Cresci na cozinha da minha avó, em Minas Gerais, ajudando a abrir massa de "
-                "pão de queijo antes de saber escrever o meu nome. Foi lá que aprendi que "
-                "comida boa é a que faz as pessoas ficarem mais um pouco à mesa.\n\n"
-                "Me formei em Gastronomia, trabalhei oito anos em restaurantes e cozinhas de "
-                "hotel e, em cada evento, pensava em como seria servir aquela comida com o "
-                "carinho de casa. Hoje cuido pessoalmente de cada cardápio: converso com você, "
-                "provo junto e acompanho a festa do início ao fim."
-            ),
-            history_title="Como o Alecrim começou",
-            history=(
-                "O Alecrim nasceu em 2014, num casamento de uma amiga. O buffet contratado "
-                "cancelou na última semana e eu me ofereci para cozinhar para 120 convidados "
-                "com a ajuda da minha mãe e de duas primas.\n\n"
-                "No fim da noite, três pessoas pediram o meu telefone. No mês seguinte vieram "
-                "mais seis. A cozinha de casa ficou pequena, alugamos o primeiro espaço e o "
-                "nome veio do vaso de alecrim que nunca saiu da janela.\n\n"
-                "Hoje somos uma equipe de 18 pessoas e já servimos mais de 600 eventos, sem "
-                "abrir mão do que nos trouxe até aqui: ingrediente fresco, receita de família "
-                "e atenção a cada detalhe."
-            ),
-            founded_year=2014,
-            city="Campinas, SP",
-            phone="(19) 3200-0000",
-            email="contato@buffetalecrim.dev",
-            instagram="buffetalecrim",
+            **DEMO_TEXTS,
             hero_image_id=_image(db, "capa-banquete"),
             owner_image_id=_image(db, "retrato-chef"),
             history_image_id=_image(db, "historia-cozinha"),

@@ -47,7 +47,7 @@ def test_demo_is_created_once(settings):
         with TestClient(create_app(demo)) as client:
             assert len(client.get("/events").json()) == 5
             site = client.get("/site").json()
-            assert site["business_name"] == "Buffet Alecrim"
+            assert site["business_name"] == "Brunoise Gastronomia"
             assert len(site["bio_photos"]) == 2
             for email, password in (DEMO_CLIENT, DEMO_OWNER):
                 login = client.post("/auth/token", data={"username": email, "password": password})
@@ -60,7 +60,7 @@ def test_demo_fills_a_site_opened_before(settings, client, owner):
     assert client.get("/site").json()["business_name"] == "Meu Buffet"  # criado na 1ª visita
     demo = Settings(**{**settings.__dict__, "seed_demo": True})
     with TestClient(create_app(demo)) as again:
-        assert again.get("/site").json()["business_name"] == "Buffet Alecrim"
+        assert again.get("/site").json()["business_name"] == "Brunoise Gastronomia"
         assert len(again.get("/events").json()) == 5
 
 
@@ -72,6 +72,21 @@ def test_demo_never_overwrites_real_content(settings, client, owner):
     with TestClient(create_app(demo)) as again:
         assert again.get("/site").json()["business_name"] == "Buffet Real"
         assert again.get("/events").json() == []
+
+
+def test_old_demo_gets_the_new_brand(settings):
+    demo = Settings(**{**settings.__dict__, "seed_demo": True})
+    with TestClient(create_app(demo)) as client:
+        owner = client.post(
+            "/auth/token", data={"username": DEMO_OWNER[0], "password": DEMO_OWNER[1]}
+        )
+        headers = {"Authorization": f"Bearer {owner.json()['access_token']}"}
+        client.patch("/admin/site", json={"business_name": "Buffet Alecrim"}, headers=headers)
+    with TestClient(create_app(demo)) as client:
+        site = client.get("/site").json()
+        assert site["business_name"] == "Brunoise Gastronomia"
+        assert site["history_title"] == "Por que Brunoise"
+        assert site["hero_image_id"]  # as fotos continuam
 
 
 def test_database_url_normalization():

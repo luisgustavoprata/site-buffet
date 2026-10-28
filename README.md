@@ -1,4 +1,4 @@
-# Site de Buffet
+# Brunoise Gastronomia · site do buffet
 
 Site completo para um buffet: apresentação da dona e da história da empresa, portfólio de
 eventos com fotos, área do cliente e **pedido de orçamento que vira uma conversa** entre o
@@ -8,8 +8,9 @@ um painel, sem mexer em código.
 Feito com **FastAPI**, **SQLAlchemy 2** e **PostgreSQL**, com a interface em JavaScript puro
 servida pela própria API.
 
-> O conteúdo de exemplo ("Buffet Alecrim", "Helena Duarte") é fictício e as fotos são
-> ilustrações. No site de verdade, tudo é trocado pelo painel.
+> Marca, logo e cores da **Brunoise Gastronomia** (vinho e cobre da logo, sobre marfim). A
+> chef "Helena Duarte", os textos de história e os eventos do portfólio de demonstração são
+> exemplos, e as fotos são ilustrações. No site de verdade, tudo é trocado pelo painel.
 
 ![Página inicial](docs/inicio.png)
 
@@ -61,7 +62,7 @@ servida pela própria API.
 | Fotos | Guardadas no banco (sobrevivem a novos deploys). Toda foto é reaberta pelo Pillow: só entra imagem de verdade, o tamanho cai para no máximo 1920 px e os dados de GPS/EXIF do celular são removidos. Cache de um ano no navegador |
 | Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida |
 | Segurança | Senhas com PBKDF2 + sal, JWT, limite de tentativas de login, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador, cabeçalhos CSP / nosniff / frame-ancestors |
-| Qualidade | 49 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Qualidade | 50 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
 
 ```

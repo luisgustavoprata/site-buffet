@@ -397,6 +397,13 @@ const go = (path) => {
 let cleanups = [];
 const onLeave = (fn) => cleanups.push(fn);
 
+/** Logo da marca: versão vinho no fundo claro e branca sobre a foto da capa. */
+function brandLogo(name = "") {
+  return h("a", { class: "brand brand--logo", href: "#/", "aria-label": `${name}, início` },
+    h("img", { class: "brand__light", src: "/static/marca-clara.png", alt: name, width: 221, height: 75 }),
+    h("img", { class: "brand__dark", src: "/static/marca-escura.png", alt: "", width: 221, height: 75 }));
+}
+
 function header({ over = false } = {}) {
   const site = state.site;
   const bar = h("header", { class: `topbar${over ? " topbar--over" : ""}` });
@@ -419,7 +426,7 @@ function header({ over = false } = {}) {
   }
 
   fill(bar, h("div", { class: "wrap topbar__inner" },
-    h("a", { class: "brand", href: "#/" }, h("img", { src: "/static/icon.svg", alt: "" }), site?.business_name || "Buffet"),
+    brandLogo(site?.business_name),
     nav,
     h("button", {
       class: "menu-btn", type: "button", "aria-label": "Abrir menu", "aria-expanded": "false",
@@ -446,9 +453,10 @@ function footer() {
     h("div", { class: "wrap" },
       h("div", { class: "footer__grid" },
         h("div", { style: "display:grid;gap:10px" },
-          h("a", { class: "brand", href: "#/", style: "color:var(--ink)" }, h("img", { src: "/static/icon.svg", alt: "" }), s.business_name),
+          h("a", { class: "brand brand--logo", href: "#/", "aria-label": `${s.business_name}, início` },
+            h("img", { src: "/static/marca-escura.png", alt: s.business_name, width: 221, height: 75 })),
           h("p", { style: "max-width:42ch" }, s.tagline)),
-        h("div", null, h("h4", null, "Contato"),
+        (s.phone || s.email || s.instagram || s.city) && h("div", null, h("h4", null, "Contato"),
           h("ul", null,
             s.phone && h("li", null, wa ? h("a", { href: wa, target: "_blank", rel: "noopener" }, s.phone) : s.phone),
             s.email && h("li", null, h("a", { href: `mailto:${s.email}` }, s.email)),
