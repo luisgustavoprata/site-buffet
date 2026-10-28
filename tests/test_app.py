@@ -56,6 +56,24 @@ def test_demo_is_created_once(settings):
             assert len(client.get("/quotes", headers=headers).json()) == 1
 
 
+def test_demo_fills_a_site_opened_before(settings, client, owner):
+    assert client.get("/site").json()["business_name"] == "Meu Buffet"  # criado na 1ª visita
+    demo = Settings(**{**settings.__dict__, "seed_demo": True})
+    with TestClient(create_app(demo)) as again:
+        assert again.get("/site").json()["business_name"] == "Buffet Alecrim"
+        assert len(again.get("/events").json()) == 5
+
+
+def test_demo_never_overwrites_real_content(settings, client, owner):
+    client.patch(
+        "/admin/site", json={"business_name": "Buffet Real", "bio": "Minha história"}, headers=owner
+    )
+    demo = Settings(**{**settings.__dict__, "seed_demo": True})
+    with TestClient(create_app(demo)) as again:
+        assert again.get("/site").json()["business_name"] == "Buffet Real"
+        assert again.get("/events").json() == []
+
+
 def test_database_url_normalization():
     assert normalize_database_url("postgres://u:p@h/db") == "postgresql+psycopg://u:p@h/db"
     assert normalize_database_url("sqlite:///x.db") == "sqlite:///x.db"

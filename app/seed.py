@@ -63,9 +63,30 @@ def _image(db: Session, name: str) -> int:
     return image.id
 
 
+def _site_is_blank(db: Session) -> bool:
+    """Sem textos, fotos nem eventos: só o conteúdo padrão criado na primeira visita."""
+    site = db.get(SiteContent, SITE_ID)
+    if site is None:
+        return True
+    filled = (
+        site.bio
+        or site.history
+        or site.hero_image_id
+        or site.owner_image_id
+        or site.history_image_id
+    )
+    return not filled and db.scalar(select(Event.id).limit(1)) is None
+
+
 def seed_demo(db: Session, today: date, iterations: int) -> None:
-    if db.get(SiteContent, SITE_ID) is not None:
-        return  # já tem conteúdo: reiniciar o servidor não duplica nada
+    if db.scalar(select(User.id).where(User.email == DEMO_OWNER[0])) is not None:
+        return  # a demonstração já existe: reiniciar o servidor não duplica nada
+    if not _site_is_blank(db):
+        return  # o site já tem conteúdo de verdade: a demonstração não apaga nada
+    blank = db.get(SiteContent, SITE_ID)
+    if blank is not None:
+        db.delete(blank)  # o site foi aberto antes de ligar SEED_DEMO
+        db.flush()
 
     owner = User(
         name="Helena Duarte",
