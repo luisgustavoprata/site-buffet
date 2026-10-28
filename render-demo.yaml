@@ -1,0 +1,19 @@
+# Blueprint de DEMONSTRAÇÃO (plano gratuito, sem banco externo).
+# Banco SQLite dentro do servidor, com o site de exemplo: tudo volta ao exemplo quando o
+# servidor reinicia ou "dorme". Para o site de verdade, use o render.yaml.
+services:
+  - type: web
+    name: site-buffet-demo
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+      - key: SEED_DEMO
+        value: "true"
+      - key: PASSWORD_ITERATIONS
+        value: "100000"
