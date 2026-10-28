@@ -1,8 +1,19 @@
 from fastapi.testclient import TestClient
 
 from app.config import Settings, normalize_database_url
+from app.database import Base, make_engine
 from app.main import create_app
 from app.seed import DEMO_CLIENT, DEMO_OWNER
+
+
+def demo_settings(settings, *, fresh: bool) -> Settings:
+    """Configuração com a demonstração ligada. `fresh` apaga o banco (útil no PostgreSQL,
+    que é compartilhado entre os testes)."""
+    if fresh:
+        engine = make_engine(settings.database_url)
+        Base.metadata.drop_all(engine)
+        engine.dispose()
+    return Settings(**{**settings.__dict__, "seed_demo": True})
 
 
 def test_health(client):
@@ -42,7 +53,7 @@ def test_openapi_lists_every_route(client):
 
 
 def test_demo_is_created_once(settings):
-    demo = Settings(**{**settings.__dict__, "seed_demo": True})
+    demo = demo_settings(settings, fresh=True)
     for _ in range(2):  # reiniciar o servidor não duplica nada
         with TestClient(create_app(demo)) as client:
             assert len(client.get("/events").json()) == 5
@@ -58,7 +69,7 @@ def test_demo_is_created_once(settings):
 
 def test_demo_fills_a_site_opened_before(settings, client, owner):
     assert client.get("/site").json()["business_name"] == "Meu Buffet"  # criado na 1ª visita
-    demo = Settings(**{**settings.__dict__, "seed_demo": True})
+    demo = demo_settings(settings, fresh=False)
     with TestClient(create_app(demo)) as again:
         assert again.get("/site").json()["business_name"] == "Brunoise Gastronomia"
         assert len(again.get("/events").json()) == 5
@@ -68,14 +79,14 @@ def test_demo_never_overwrites_real_content(settings, client, owner):
     client.patch(
         "/admin/site", json={"business_name": "Buffet Real", "bio": "Minha história"}, headers=owner
     )
-    demo = Settings(**{**settings.__dict__, "seed_demo": True})
+    demo = demo_settings(settings, fresh=False)
     with TestClient(create_app(demo)) as again:
         assert again.get("/site").json()["business_name"] == "Buffet Real"
         assert again.get("/events").json() == []
 
 
 def test_old_demo_gets_the_new_brand(settings):
-    demo = Settings(**{**settings.__dict__, "seed_demo": True})
+    demo = demo_settings(settings, fresh=True)
     with TestClient(create_app(demo)) as client:
         owner = client.post(
             "/auth/token", data={"username": DEMO_OWNER[0], "password": DEMO_OWNER[1]}
