@@ -61,3 +61,9 @@ def test_event_validation(api, client, owner):
         headers=owner,
     )
     assert missing.status_code == 422
+
+
+def test_site_stats_count_the_portfolio(api, client, owner):
+    _event(api, owner, guests=120, image_ids=[api.image(owner), api.image(owner)])
+    _event(api, owner, title="Outro evento", guests=80)
+    assert client.get("/site").json()["stats"] == {"events": 2, "guests": 200, "photos": 2}

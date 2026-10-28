@@ -8,13 +8,14 @@ from sqlalchemy import func, select
 
 from app.deps import OwnerUser, SessionDep, SettingsDep
 from app.images import InvalidImage, process_upload
-from app.models import BioPhoto, Image
+from app.models import BioPhoto, Event, EventPhoto, Image
 from app.schemas import (
     BioPhotoCreate,
     BioPhotoOut,
     ErrorResponse,
     ImageOut,
     SiteOut,
+    SiteStats,
     SiteUpdate,
 )
 from app.services import delete_unused_images, get_site, require_images
@@ -28,6 +29,12 @@ def site_out(db) -> SiteOut:
     out = SiteOut.model_validate(get_site(db))
     photos = db.scalars(select(BioPhoto).order_by(BioPhoto.position, BioPhoto.id))
     out.bio_photos = [BioPhotoOut.model_validate(photo) for photo in photos]
+    events, guests = db.execute(select(func.count(Event.id), func.sum(Event.guests))).one()
+    out.stats = SiteStats(
+        events=events or 0,
+        guests=guests or 0,
+        photos=db.scalar(select(func.count(EventPhoto.id))) or 0,
+    )
     return out
 
 

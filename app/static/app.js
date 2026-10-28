@@ -189,8 +189,10 @@ function showErrors(form, err) {
     const slot = form.querySelector(`[data-error-for="${CSS.escape(e.field)}"]`);
     if (slot) {
       slot.textContent = e.message;
-      form.elements[e.field]?.setAttribute("aria-invalid", "true");
-      if (!placed) form.elements[e.field]?.focus();
+      const control = form.elements[e.field];
+      const el = control instanceof Element ? control : control?.[0]; // grupo de opções: o 1º item
+      if (control instanceof Element) control.setAttribute("aria-invalid", "true");
+      if (!placed) el?.focus();
       placed = true;
     }
   }
@@ -471,7 +473,7 @@ function publicPage(content, opts = {}) {
 const ROUTES = [
   [/^\/$/, () => renderHome()],
   [/^\/(sobre|historia|contato)$/, (m) => renderHome(m[1])],
-  [/^\/portfolio$/, () => renderPortfolio()],
+  [/^\/portfolio$/, (m, q) => renderPortfolio(q)],
   [/^\/portfolio\/(\d+)$/, (m) => renderEvent(Number(m[1]))],
   [/^\/entrar$/, (m, q) => renderAuth("login", q)],
   [/^\/cadastro$/, (m, q) => renderAuth("register", q)],
@@ -520,99 +522,227 @@ async function boot() {
 
 /* ===================== 4. Site público ===================== */
 
+const EVENT_ICONS = {
+  Casamento: '<circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="M10 5l2-2 2 2"/>',
+  "Aniversário": '<path d="M4 20h16v-7H4z"/><path d="M4 16c2 1.5 4 1.5 6 0s4-1.5 6 0 3 1 4 0"/><path d="M12 13V9M12 6.5a1 1 0 0 1 0-2c.5.6.5 1.4 0 2z"/>',
+  "15 anos": '<path d="M5 18h14l1-9-5 4-3-6-3 6-5-4z"/><path d="M5 21h14"/>',
+  Corporativo: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M3 12h18"/>',
+  Batizado: '<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/>',
+  "Chá de bebê": '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  Formatura: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5M22 9v6"/>',
+  Outro: '<path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/>',
+};
+
+function eventIcon(type) {
+  const svg = icon("photo");
+  svg.innerHTML = EVENT_ICONS[type] || EVENT_ICONS.Outro;
+  return svg;
+}
+
+const firstName = (name, fallback = "") => (name ? name.split(" ")[0] : fallback);
+const NUMBER = new Intl.NumberFormat("pt-BR");
+
+/** Título com a parte depois da última vírgula em itálico: "Sua festa…, *e serviço…*". */
+function accentTitle(text) {
+  const cut = text.lastIndexOf(",");
+  if (cut < 8 || cut > text.length - 6) return text;
+  return [text.slice(0, cut + 1), " ", h("em", null, text.slice(cut + 1).trim())];
+}
+
+/** Anima a entrada dos blocos marcados com .reveal e os contadores com [data-count]. */
+function animateOnScroll(scope = document) {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const items = scope.querySelectorAll(".reveal, [data-count]");
+  if (reduce || !("IntersectionObserver" in window)) {
+    items.forEach((el) => {
+      el.classList.add("is-in");
+      if (el.dataset.count) el.textContent = NUMBER.format(Number(el.dataset.count));
+    });
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const el = entry.target;
+      observer.unobserve(el);
+      el.classList.add("is-in");
+      if (el.dataset.count) countUp(el, Number(el.dataset.count));
+    }
+  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+  items.forEach((el) => observer.observe(el));
+  onLeave(() => observer.disconnect());
+}
+
+function countUp(el, target) {
+  const start = performance.now();
+  const duration = 1400;
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = NUMBER.format(Math.round(target * eased));
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function sectionHead(eyebrow, title, lede, id, center = false) {
+  return h("div", { class: `section__head reveal${center ? " section__head--center" : ""}` },
+    h("p", { class: "eyebrow" }, eyebrow),
+    h("h2", { class: "section__title", id }, title),
+    lede && h("p", { class: "section__lede" }, lede));
+}
+
 async function renderHome(anchor) {
   const s = state.site;
   document.title = `${s.business_name} | ${s.tagline || "Buffet"}`;
-  const eventsArea = h("div", { class: "gallery" }, loading());
+  const occasions = h("div", { class: "occasions" });
+  const featured = h("div", { class: "featured" }, loading());
+  const years = s.founded_year ? new Date().getFullYear() - s.founded_year : 0;
+  const ownerFirst = firstName(s.owner_name, "a gente");
+
+  const stats = [
+    years > 0 && [years, years === 1 ? "ano de história" : "anos de história"],
+    s.stats.events > 0 && [s.stats.events, s.stats.events === 1 ? "evento no portfólio" : "eventos no portfólio"],
+    s.stats.guests > 0 && [s.stats.guests, "convidados nesses eventos"],
+    s.stats.photos > 0 && [s.stats.photos, "fotos para você conhecer"],
+  ].filter(Boolean);
+
+  const marqueeWords = [...new Set(s.event_types.filter((t) => t !== "Outro"))];
+  const marqueeRow = () => h("div", { class: "marquee__row", "aria-hidden": "true" },
+    marqueeWords.map((w) => [h("span", null, w), h("span", { class: "marquee__dot" }, "✦")]));
+
+  const paragraphsWithCap = (text) => {
+    const ps = paragraphs(text);
+    if (ps[0]) ps[0].classList.add("dropcap");
+    return ps;
+  };
 
   publicPage([
-    h("section", { class: "hero", "aria-label": "Apresentação" },
-      s.hero_image_id ? h("img", { class: "hero__img", src: media(s.hero_image_id), alt: "" }) : null,
+    h("section", { class: `hero${s.hero_image_id ? "" : " hero--plain"}`, "aria-label": "Apresentação" },
+      s.hero_image_id ? h("img", { class: "hero__img", src: media(s.hero_image_id), alt: "", fetchpriority: "high" }) : null,
       h("div", { class: "wrap hero__content" },
-        s.tagline && h("p", { class: "eyebrow" }, s.tagline),
-        h("h1", { class: "hero__title" }, s.hero_title || s.business_name),
+        s.tagline && h("p", { class: "hero__eyebrow" }, h("span", null, s.tagline)),
+        h("h1", { class: "hero__title" }, accentTitle(s.hero_title || s.business_name)),
         s.hero_text && h("p", { class: "hero__text" }, s.hero_text),
         h("div", { class: "hero__actions" },
-          h("a", { class: "btn btn--primary", href: "#/orcamento" }, "Agendar evento"),
-          h("a", { class: "btn btn--outline-light", href: "#/portfolio" }, "Ver portfólio")))),
+          h("a", { class: "btn btn--primary btn--lg", href: "#/orcamento" }, "Agendar evento"),
+          h("a", { class: "btn btn--outline-light btn--lg", href: "#/portfolio" }, "Ver portfólio"))),
+      h("a", { class: "hero__scroll", href: "#/sobre", "aria-label": "Conhecer mais" }, h("span", null, "Conheça"), icon("down"))),
+
+    stats.length > 0 && h("section", { class: "stats", "aria-label": "Em números" },
+      h("div", { class: "wrap stats__grid" },
+        stats.map(([n, label]) => h("div", { class: "stat reveal" },
+          h("strong", { class: "stat__n", "data-count": n }, "0"),
+          h("span", { class: "stat__label" }, label))))),
+
+    marqueeWords.length > 2 && h("div", { class: "marquee", role: "presentation" },
+      h("div", { class: "marquee__track" }, marqueeRow(), marqueeRow())),
 
     h("section", { class: "section", id: "sobre", "aria-labelledby": "t-sobre" },
       h("div", { class: "wrap" },
         h("div", { class: "about" },
-          s.owner_image_id && h("div", { class: "about__photo" }, img(s.owner_image_id, s.owner_name)),
-          h("div", { class: "about__text" },
+          s.owner_image_id && h("figure", { class: "about__photo reveal" },
+            img(s.owner_image_id, s.owner_name),
+            s.founded_year && h("figcaption", { class: "about__badge" }, h("small", null, "Desde"), s.founded_year)),
+          h("div", { class: "about__text reveal" },
             h("p", { class: "eyebrow" }, "Quem cozinha para você"),
             h("h2", { class: "about__name", id: "t-sobre" }, s.owner_name || "Sobre mim"),
             s.owner_role && h("p", { class: "about__role" }, s.owner_role),
-            h("div", { class: "prose" }, paragraphs(s.bio)),
-            s.owner_name && h("p", { class: "signature" }, s.owner_name.split(" ")[0]))),
-        s.bio_photos.length > 0 && h("div", { class: "photo-strip" },
-          s.bio_photos.map((p) => h("figure", null, img(p.image_id, p.caption), p.caption && h("figcaption", null, p.caption)))))),
+            h("div", { class: "prose" }, paragraphsWithCap(s.bio)),
+            s.owner_name && h("p", { class: "signature" }, firstName(s.owner_name)))),
+        s.bio_photos.length > 0 && h("div", { class: `collage collage--${Math.min(s.bio_photos.length, 3)}` },
+          s.bio_photos.map((p) => h("figure", { class: "reveal" }, img(p.image_id, p.caption), p.caption && h("figcaption", null, p.caption)))))),
 
     h("section", { class: "section section--sand", id: "historia", "aria-labelledby": "t-historia" },
       h("div", { class: "wrap history" },
-        h("div", { style: "display:grid;gap:22px" },
+        h("div", { class: "history__text reveal" },
           s.founded_year && h("p", { class: "history__year" }, h("small", null, "Desde"), s.founded_year),
           h("h2", { class: "section__title", id: "t-historia" }, s.history_title || "Nossa história"),
           h("div", { class: "prose" }, paragraphs(s.history))),
-        s.history_image_id && h("div", { class: "history__img" }, img(s.history_image_id, "")))),
+        s.history_image_id && h("figure", { class: "history__img reveal" }, img(s.history_image_id, "")))),
 
-    h("section", { class: "section", "aria-labelledby": "t-portfolio" },
+    h("section", { class: "section", "aria-labelledby": "t-ocasioes" },
       h("div", { class: "wrap" },
-        h("div", { class: "section__head" },
-          h("p", { class: "eyebrow" }, "Portfólio"),
-          h("h2", { class: "section__title", id: "t-portfolio" }, "Eventos que já servimos"),
-          h("p", { class: "section__lede" }, "Um pouco do que fizemos para outras famílias e empresas.")),
-        eventsArea,
-        h("p", { style: "margin-top:32px" }, h("a", { class: "btn btn--ghost", href: "#/portfolio" }, "Ver todos os eventos")))),
+        sectionHead("Para cada ocasião", "Do brinde ao último doce", "Cardápio, montagem e serviço pensados para o tipo de festa que você vai receber.", "t-ocasioes"),
+        occasions)),
+
+    h("section", { class: "section section--tight", "aria-labelledby": "t-portfolio" },
+      h("div", { class: "wrap" },
+        h("div", { class: "section__row" },
+          sectionHead("Portfólio", "Eventos que já servimos", null, "t-portfolio"),
+          h("a", { class: "link-arrow reveal", href: "#/portfolio" }, "Ver todos os eventos", icon("right"))),
+        featured)),
 
     h("section", { class: "section section--dark", "aria-labelledby": "t-como" },
       h("div", { class: "wrap" },
-        h("div", { class: "section__head" },
-          h("p", { class: "eyebrow", style: "color:#e9a27f" }, "Orçamento"),
-          h("h2", { class: "section__title", id: "t-como" }, "Como pedir o seu orçamento"),
-          h("p", { class: "section__lede" }, "Sem formulário perdido no e-mail: a conversa acontece aqui no site e fica guardada.")),
-        h("div", { class: "steps" },
-          h("div", { class: "step" }, h("h3", null, "Crie sua conta"), h("p", null, "Só nome, e-mail, telefone e cidade. Leva um minuto.")),
-          h("div", { class: "step" }, h("h3", null, "Conte sobre o evento"), h("p", null, "Tipo de festa, data, número de convidados, local e o que você imagina.")),
-          h("div", { class: "step" }, h("h3", null, `Converse com ${s.owner_name ? s.owner_name.split(" ")[0] : "a gente"}`),
-            h("p", null, "Você recebe a resposta aqui mesmo e acompanha tudo pela sua conta."))),
-        h("div", { class: "cta", style: "margin-top:clamp(40px,6vw,64px)" },
-          h("h2", null, "Vamos conversar sobre a sua festa?"),
-          h("a", { class: "btn btn--light", href: "#/orcamento" }, "Agendar evento")))),
+        sectionHead("Orçamento", "Como pedir o seu orçamento", "A conversa acontece aqui no site e fica guardada na sua conta. Nada de mensagem perdida.", "t-como"),
+        h("ol", { class: "steps" },
+          h("li", { class: "step reveal" }, h("h3", null, "Crie sua conta"), h("p", null, "Nome, e-mail, telefone e cidade. Leva um minuto.")),
+          h("li", { class: "step reveal" }, h("h3", null, "Conte sobre o evento"), h("p", null, "Tipo de festa, data, convidados, local e o que você imagina.")),
+          h("li", { class: "step reveal" }, h("h3", null, `Converse com ${ownerFirst}`), h("p", null, "A resposta chega aqui mesmo. Você acompanha tudo pela sua conta."))))),
+
+    h("section", { class: "cta-band", "aria-labelledby": "t-cta" },
+      (s.hero_image_id || s.history_image_id) && h("img", { src: media(s.hero_image_id || s.history_image_id), alt: "", loading: "lazy" }),
+      h("div", { class: "wrap cta-band__inner reveal" },
+        h("p", { class: "eyebrow" }, "Vamos conversar?"),
+        h("h2", { id: "t-cta" }, "Conte como você imagina a sua festa"),
+        h("a", { class: "btn btn--light btn--lg", href: "#/orcamento" }, "Agendar evento"))),
   ], { over: Boolean(s.hero_image_id) });
 
+  animateOnScroll();
   if (anchor) requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
 
+  let events = [];
   try {
-    const events = await api.get("/events", { limit: 3 });
-    fill(eventsArea, events.length ? events.map(eventCard) : h("div", { class: "empty" }, "Os primeiros eventos aparecem aqui em breve."));
+    events = await api.get("/events", { limit: 200 });
   } catch {
-    fill(eventsArea, h("div", { class: "empty" }, "Não foi possível carregar o portfólio agora."));
+    /* mostra o vazio abaixo */
   }
+  const byType = new Map();
+  for (const e of events) {
+    if (!byType.has(e.event_type)) byType.set(e.event_type, { cover: null, count: 0 });
+    const t = byType.get(e.event_type);
+    t.count += 1;
+    t.cover ||= e.photos[0]?.image_id;
+  }
+  fill(occasions, byType.size
+    ? [...byType.entries()].slice(0, 6).map(([type, info]) => h("a", { class: "occasion reveal", href: `#/portfolio?tipo=${encodeURIComponent(type)}` },
+      info.cover && img(info.cover, ""),
+      h("div", { class: "occasion__body" },
+        h("span", { class: "occasion__icon" }, eventIcon(type)),
+        h("h3", null, type),
+        h("p", null, plural(info.count, "evento", "eventos"), " no portfólio"))))
+    : s.event_types.slice(0, 6).map((type) => h("div", { class: "occasion occasion--plain reveal" },
+      h("div", { class: "occasion__body" }, h("span", { class: "occasion__icon" }, eventIcon(type)), h("h3", null, type)))));
+
+  fill(featured, events.length
+    ? events.slice(0, 3).map((e, i) => eventCard(e, i === 0 ? "card--wide" : ""))
+    : h("div", { class: "empty" }, "Os primeiros eventos aparecem aqui em breve."));
+  animateOnScroll(occasions.parentElement);
+  animateOnScroll(featured);
 }
 
-function eventCard(e) {
+function eventCard(e, extra = "") {
   const cover = e.photos[0]?.image_id;
-  const meta = [e.event_date && fmtMonth(e.event_date), e.guests && plural(e.guests, "convidado", "convidados"), e.location]
-    .filter(Boolean).join(" · ");
-  return h("a", { class: "card", href: `#/portfolio/${e.id}` },
+  const meta = [e.event_date && fmtMonth(e.event_date), e.guests && plural(e.guests, "convidado", "convidados")].filter(Boolean).join(" · ");
+  return h("a", { class: `card reveal ${extra}`, href: `#/portfolio/${e.id}` },
     h("div", { class: "card__img" },
       cover ? img(cover, e.title) : h("div", { class: "loading" }, icon("photo")),
-      e.photos.length > 1 && h("span", { class: "card__count" }, plural(e.photos.length, "foto", "fotos"))),
-    h("p", { class: "card__type" }, e.event_type),
-    h("h3", { class: "card__title" }, e.title),
-    meta && h("p", { class: "card__meta" }, meta));
+      h("div", { class: "card__overlay" },
+        h("span", { class: "card__type" }, e.event_type),
+        h("h3", { class: "card__title" }, e.title),
+        meta && h("p", { class: "card__meta" }, meta)),
+      e.photos.length > 1 && h("span", { class: "card__count" }, icon("photo"), e.photos.length)));
 }
 
-async function renderPortfolio() {
+async function renderPortfolio(query) {
   document.title = `Portfólio | ${state.site.business_name}`;
   const chips = h("div", { class: "chips", role: "group", "aria-label": "Filtrar por tipo de evento" });
-  const grid = h("div", { class: "gallery" }, loading());
-  publicPage(h("div", { class: "wrap", style: "padding-bottom:88px" },
-    h("div", { class: "page-head" },
+  const grid = h("div", { class: "masonry" }, loading());
+  publicPage(h("div", { class: "wrap", style: "padding-bottom:96px" },
+    h("div", { class: "page-head page-head--center" },
       h("p", { class: "eyebrow" }, "Portfólio"),
-      h("h1", null, "Eventos que já servimos"),
+      h("h1", null, "Eventos que ", h("em", null, "já servimos")),
       h("p", { class: "section__lede" }, "Clique em um evento para ver todas as fotos.")),
     chips, grid));
 
@@ -624,71 +754,80 @@ async function renderPortfolio() {
     return;
   }
   const types = [...new Set(all.map((e) => e.event_type))];
-  let current = "";
+  let current = types.includes(query?.get("tipo")) ? query.get("tipo") : "";
   const draw = () => {
     fill(chips, ["", ...types].map((t) => h("button", {
       class: "chip", type: "button", "aria-pressed": String(current === t),
       onclick: () => {
         current = t;
+        history.replaceState(null, "", t ? `#/portfolio?tipo=${encodeURIComponent(t)}` : "#/portfolio");
         draw();
       },
-    }, t || "Todos")));
+    }, t || "Todos", h("small", null, t ? all.filter((e) => e.event_type === t).length : all.length))));
     const list = all.filter((e) => !current || e.event_type === current);
-    fill(grid, list.length ? list.map(eventCard) : h("div", { class: "empty" }, "Nenhum evento publicado ainda."));
+    fill(grid, list.length ? list.map((e) => eventCard(e)) : h("div", { class: "empty" }, "Nenhum evento publicado ainda."));
+    animateOnScroll(grid);
   };
   draw();
 }
 
 async function renderEvent(id) {
-  const area = h("div", { class: "wrap event" }, loading());
+  const area = h("div", null, loading());
   publicPage(area);
-  let e;
+  let e, all;
   try {
-    e = await api.get(`/events/${id}`);
+    [e, all] = await Promise.all([api.get(`/events/${id}`), api.get("/events", { limit: 200 }).catch(() => [])]);
   } catch (err) {
-    fill(area, h("div", { class: "empty" }, err.message, h("a", { class: "btn btn--ghost", href: "#/portfolio" }, "Voltar ao portfólio")));
+    fill(area, h("div", { class: "wrap", style: "padding:80px 0" },
+      h("div", { class: "empty" }, err.message, h("a", { class: "btn btn--ghost", href: "#/portfolio" }, "Voltar ao portfólio"))));
     return;
   }
   document.title = `${e.title} | ${state.site.business_name}`;
   const photos = e.photos.map((p) => p.image_id);
+  const index = all.findIndex((x) => x.id === e.id);
+  const prev = index > 0 ? all[index - 1] : null;
+  const next = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
+
   fill(area,
-    h("div", { class: "page-head", style: "padding-bottom:0" },
-      h("a", { class: "back", href: "#/portfolio" }, icon("left"), "Portfólio"),
-      h("div", { class: "event__head" },
+    h("header", { class: `event-hero${photos[0] ? "" : " event-hero--plain"}` },
+      photos[0] && h("img", { src: media(photos[0]), alt: "" }),
+      h("div", { class: "wrap event-hero__content" },
+        h("a", { class: "back back--light", href: "#/portfolio" }, icon("left"), "Portfólio"),
         h("p", { class: "eyebrow" }, e.event_type),
         h("h1", null, e.title),
-        h("div", { class: "facts" },
-          e.event_date && h("span", null, h("strong", null, "Data: "), fmtDate(e.event_date)),
-          e.guests && h("span", null, h("strong", null, "Convidados: "), e.guests),
-          e.location && h("span", null, h("strong", null, "Local: "), e.location)),
-        e.description && h("div", { class: "prose" }, paragraphs(e.description)))),
-    photos.length ? h("div", { class: "event__photos" },
-      photos.map((imageId, i) => h("button", {
-        type: "button", "aria-label": `Ampliar foto ${i + 1} de ${photos.length}`, onclick: () => lightbox(photos, i, e.title),
-        style: i === 0 ? null : `grid-column: span ${gallerySpan(photos.length - 1)}`,
-      },
-        img(imageId, `${e.title}, foto ${i + 1}`)))) : null,
-    h("div", { class: "cta" },
-      h("h2", null, "Quer uma festa assim?"),
-      h("a", { class: "btn btn--light", href: "#/orcamento" }, "Agendar evento")));
-}
-
-/** Depois da capa, as fotos ocupam a linha toda: 1 por linha, 2 lado a lado ou 3 por linha. */
-function gallerySpan(rest) {
-  if (rest === 1) return 6;
-  if (rest % 3 === 0) return 2;
-  if (rest % 2 === 0) return 3;
-  return 2;
+        h("ul", { class: "facts" },
+          e.event_date && h("li", null, h("small", null, "Data"), fmtDate(e.event_date)),
+          e.guests && h("li", null, h("small", null, "Convidados"), NUMBER.format(e.guests)),
+          e.location && h("li", null, h("small", null, "Local"), e.location),
+          photos.length > 0 && h("li", null, h("small", null, "Fotos"), photos.length)))),
+    h("div", { class: "wrap event" },
+      e.description && h("div", { class: "event__desc reveal" }, h("div", { class: "prose prose--lg" }, paragraphs(e.description))),
+      photos.length ? h("div", { class: "masonry masonry--photos" },
+        photos.map((imageId, i) => h("button", {
+          class: "photo reveal", type: "button", "aria-label": `Ampliar foto ${i + 1} de ${photos.length}`,
+          onclick: () => lightbox(photos, i, e.title),
+        }, img(imageId, `${e.title}, foto ${i + 1}`)))) : null,
+      (prev || next) && h("nav", { class: "pager-events", "aria-label": "Outros eventos" },
+        prev ? h("a", { href: `#/portfolio/${prev.id}` }, h("small", null, "Anterior"), prev.title) : h("span"),
+        next ? h("a", { href: `#/portfolio/${next.id}`, class: "is-next" }, h("small", null, "Próximo"), next.title) : h("span")),
+      h("div", { class: "cta reveal" },
+        h("h2", null, "Quer uma festa assim?"),
+        h("a", { class: "btn btn--light", href: "#/orcamento" }, "Agendar evento"))));
+  animateOnScroll(area);
 }
 
 function lightbox(ids, start, title) {
   let index = start;
   const picture = h("img", { alt: "" });
   const counter = h("span");
+  const thumbs = h("div", { class: "lightbox__thumbs" },
+    ids.map((id, i) => h("button", { type: "button", "aria-label": `Foto ${i + 1}`, onclick: () => { index = i; show(); } }, h("img", { src: media(id), alt: "" }))));
   const show = () => {
     picture.src = media(ids[index]);
     picture.alt = `${title}, foto ${index + 1}`;
-    counter.textContent = `${index + 1} de ${ids.length}`;
+    counter.textContent = `${index + 1} / ${ids.length}`;
+    [...thumbs.children].forEach((b, i) => b.setAttribute("aria-current", String(i === index)));
+    thumbs.children[index]?.scrollIntoView({ block: "nearest", inline: "center" });
   };
   const step = (d) => {
     index = (index + d + ids.length) % ids.length;
@@ -697,6 +836,7 @@ function lightbox(ids, start, title) {
   const close = () => {
     box.remove();
     document.removeEventListener("keydown", keys);
+    document.body.style.overflow = "";
     opener?.focus();
   };
   const keys = (e) => {
@@ -706,14 +846,26 @@ function lightbox(ids, start, title) {
   };
   const opener = document.activeElement;
   const closeBtn = h("button", { class: "icon-btn", type: "button", "aria-label": "Fechar", onclick: close }, icon("close"));
+  const stage = h("div", { class: "lightbox__stage", onclick: (e) => e.target === e.currentTarget && close() }, picture);
+  let touchX = null;
+  stage.addEventListener("touchstart", (e) => (touchX = e.touches[0].clientX), { passive: true });
+  stage.addEventListener("touchend", (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) step(dx < 0 ? 1 : -1);
+    touchX = null;
+  });
   const box = h("div", { class: "lightbox", role: "dialog", "aria-modal": "true", "aria-label": title },
-    h("div", { class: "lightbox__top" }, counter, closeBtn),
-    h("div", { class: "lightbox__stage", onclick: (e) => e.target === e.currentTarget && close() }, picture),
+    h("div", { class: "lightbox__top" }, h("span", { class: "lightbox__title" }, title), counter, closeBtn),
+    stage,
+    ids.length > 1 && thumbs,
     ids.length > 1 && h("button", { class: "lightbox__nav lightbox__nav--prev", type: "button", "aria-label": "Foto anterior", onclick: () => step(-1) }, icon("left")),
     ids.length > 1 && h("button", { class: "lightbox__nav lightbox__nav--next", type: "button", "aria-label": "Próxima foto", onclick: () => step(1) }, icon("right")));
-  show();
   document.body.append(box);
+  document.body.style.overflow = "hidden";
+  show();
   document.addEventListener("keydown", keys);
+  onLeave(close);
   closeBtn.focus();
 }
 
@@ -797,33 +949,135 @@ function renderQuoteForm() {
   }
   const s = state.site;
   document.title = `Pedir orçamento | ${s.business_name}`;
-  const form = h("form", { class: "form", novalidate: true },
+  const STEPS = ["O evento", "Detalhes", "Revisar"];
+  let current = 0;
+
+  const typeTiles = h("div", { class: "tiles", role: "radiogroup", "aria-label": "Tipo de evento" },
+    s.event_types.map((t) => h("label", { class: "tile" },
+      h("input", { type: "radio", name: "event_type", value: t, class: "sr-only" }),
+      h("span", { class: "tile__icon" }, eventIcon(t)), h("span", null, t))));
+
+  const guests = h("input", { class: "input stepper__input", id: "f-guests", name: "guests", type: "number", min: 1, inputmode: "numeric", placeholder: "0" });
+  const bump = (d) => {
+    guests.value = Math.max(1, (Number(guests.value) || 0) + d);
+    guests.dispatchEvent(new Event("input"));
+  };
+  const stepper = h("div", { class: "field" },
+    h("label", { class: "field__label", for: "f-guests" }, "Número de convidados"),
+    h("div", { class: "stepper" },
+      h("button", { type: "button", "aria-label": "Menos 10 convidados", onclick: () => bump(-10) }, "−"),
+      guests,
+      h("button", { type: "button", "aria-label": "Mais 10 convidados", onclick: () => bump(10) }, "+")),
+    h("p", { class: "field__error", "data-error-for": "guests" }));
+
+  const budgetChips = h("div", { class: "field" },
+    h("span", { class: "field__label" }, "Quanto pretende investir"),
+    h("div", { class: "chips chips--choice", role: "radiogroup", "aria-label": "Faixa de investimento" },
+      s.budgets.map((b) => h("label", { class: "chip" },
+        h("input", { type: "radio", name: "budget", value: b, class: "sr-only", checked: b === "" }),
+        b || "Prefiro conversar"))),
+    h("p", { class: "field__error", "data-error-for": "budget" }));
+
+  const review = h("dl", { class: "review" });
+  const panes = [
+    h("fieldset", { class: "wizard__pane" },
+      h("legend", { class: "sr-only" }, STEPS[0]),
+      h("div", { class: "field" }, h("span", { class: "field__label" }, "Que tipo de evento?"), typeTiles,
+        h("p", { class: "field__error", "data-error-for": "event_type" })),
+      h("div", { class: "form__row" },
+        field({ label: "Data do evento", name: "event_date", type: "date", required: true, min: todayISO() }),
+        stepper)),
+    h("fieldset", { class: "wizard__pane" },
+      h("legend", { class: "sr-only" }, STEPS[1]),
+      field({ label: "Local do evento", name: "location", required: true, placeholder: "Salão, chácara, casa… e a cidade" }),
+      budgetChips,
+      field({ label: "Conte como você imagina a festa", name: "details", as: "textarea", placeholder: "Cardápio que gosta, restrições alimentares, horário, estilo da festa…", hint: "Opcional, mas ajuda a preparar uma proposta certeira." })),
+    h("fieldset", { class: "wizard__pane" },
+      h("legend", { class: "sr-only" }, STEPS[2]),
+      h("p", { class: "muted" }, "Confira antes de enviar. Depois, a conversa continua na sua conta."),
+      review),
+  ];
+
+  const progress = h("ol", { class: "wizard__progress" }, STEPS.map((label, i) => h("li", null, h("span", null, i + 1), label)));
+  const back = h("button", { class: "btn btn--ghost", type: "button", onclick: () => show(current - 1) }, "Voltar");
+  const nextBtn = h("button", { class: "btn btn--primary", type: "submit" });
+  const form = h("form", { class: "form wizard", novalidate: true },
+    progress,
     h("p", { class: "form__error", role: "alert", tabindex: "-1" }),
-    h("div", { class: "form__row" },
-      field({ label: "Tipo de evento", name: "event_type", as: "select", required: true, options: [["", "Escolha…"], ...s.event_types.map((t) => [t, t])] }),
-      field({ label: "Data do evento", name: "event_date", type: "date", required: true, min: todayISO() })),
-    h("div", { class: "form__row" },
-      field({ label: "Número de convidados", name: "guests", type: "number", min: 1, inputmode: "numeric", required: true, placeholder: "Ex.: 120" }),
-      field({ label: "Quanto pretende investir", name: "budget", as: "select", options: s.budgets.map((b) => [b, b || "Prefiro conversar"]) })),
-    field({ label: "Local do evento", name: "location", required: true, placeholder: "Salão, chácara, casa… e a cidade" }),
-    field({ label: "Conte como você imagina a festa", name: "details", as: "textarea", placeholder: "Cardápio que gosta, restrições alimentares, horário, estilo da festa…", hint: "Opcional, mas ajuda a preparar uma proposta certeira." }),
-    h("button", { class: "btn btn--primary btn--block", type: "submit" }, "Enviar pedido e abrir conversa"));
+    panes,
+    h("div", { class: "wizard__actions" }, back, nextBtn));
+
+  const v = () => formValues(form);
+  const fieldStep = { event_type: 0, event_date: 0, guests: 0, location: 1, budget: 1, details: 1 };
+
+  function show(i) {
+    current = i;
+    panes.forEach((p, n) => (p.hidden = n !== i));
+    [...progress.children].forEach((li, n) => {
+      li.classList.toggle("is-done", n < i);
+      li.classList.toggle("is-current", n === i);
+    });
+    back.hidden = i === 0;
+    nextBtn.textContent = i === STEPS.length - 1 ? "Enviar pedido e abrir conversa" : "Continuar";
+    if (i === 2) {
+      const d = v();
+      const row = (label, value, step) => [h("dt", null, label), h("dd", null, value || h("span", { class: "muted" }, "—"),
+        h("button", { class: "link-btn", type: "button", onclick: () => show(step) }, "alterar"))];
+      fill(review,
+        row("Evento", d.event_type, 0),
+        row("Data", fmtDate(d.event_date), 0),
+        row("Convidados", d.guests && plural(Number(d.guests), "convidado", "convidados"), 0),
+        row("Local", d.location, 1),
+        row("Investimento", d.budget || "Prefiro conversar", 1),
+        row("Detalhes", d.details, 1));
+    }
+    panes[i].querySelector("input:not([type=radio]), textarea, input")?.focus({ preventScroll: true });
+  }
+
+  function checkStep(i) {
+    clearErrors(form);
+    const d = v();
+    const errors = [];
+    if (i === 0) {
+      if (!d.event_type) errors.push({ field: "event_type", message: "Escolha o tipo de evento." });
+      if (!d.event_date) errors.push({ field: "event_date", message: "Informe a data." });
+      else if (d.event_date < todayISO()) errors.push({ field: "event_date", message: "A data já passou." });
+      if (!(Number(d.guests) > 0)) errors.push({ field: "guests", message: "Informe quantos convidados." });
+    }
+    if (i === 1 && (d.location || "").trim().length < 2) errors.push({ field: "location", message: "Informe o local do evento." });
+    if (errors.length) showErrors(form, { errors, message: errors[0].message });
+    return errors.length === 0;
+  }
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const v = formValues(form);
+    if (current < STEPS.length - 1) {
+      if (checkStep(current)) show(current + 1);
+      return;
+    }
+    const d = v();
     submitting(form, async () => {
-      const quote = await api.post("/quotes", { ...v, guests: v.guests ? Number(v.guests) : null });
-      toast("Pedido enviado! Agora é só conversar por aqui.");
-      go(`/conta/pedidos/${quote.id}`);
+      try {
+        const quote = await api.post("/quotes", { ...d, guests: Number(d.guests) || null });
+        toast("Pedido enviado! Agora é só conversar por aqui.");
+        go(`/conta/pedidos/${quote.id}`);
+      } catch (err) {
+        const step = Math.min(...(err.errors || []).map((e) => fieldStep[e.field] ?? 2), 2);
+        show(Number.isFinite(step) ? step : 2);
+        throw err;
+      }
+    }).then(() => {
+      // o envio restaura o texto do botão; recoloca o do passo em que a pessoa está
+      nextBtn.textContent = current === STEPS.length - 1 ? "Enviar pedido e abrir conversa" : "Continuar";
     });
   });
 
-  const firstName = s.owner_name ? s.owner_name.split(" ")[0] : "a gente";
+  show(0);
+  const ownerFirst = firstName(s.owner_name, "a gente");
   splitPage("Conte sobre o seu evento",
-    `Com essas informações, ${firstName} prepara a proposta e responde aqui no site. Você recebe as mensagens na sua conta.`,
-    h("div", { class: "panel-card" },
-      h("p", { class: "eyebrow" }, `Olá, ${state.user.name.split(" ")[0]}`),
+    `Com essas informações, ${ownerFirst} prepara a proposta e responde aqui no site. Você recebe as mensagens na sua conta.`,
+    h("div", { class: "panel-card panel-card--wide" },
+      h("p", { class: "eyebrow" }, `Olá, ${firstName(state.user.name)}`),
       h("h1", null, "Pedir orçamento"),
       form));
 }

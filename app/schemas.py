@@ -123,6 +123,12 @@ class BioPhotoOut(Output):
     caption: str
 
 
+class SiteStats(BaseModel):
+    events: int = 0
+    guests: int = 0  # soma dos convidados dos eventos do portfólio
+    photos: int = 0
+
+
 class SiteOut(Output):
     business_name: str
     tagline: str
@@ -142,6 +148,7 @@ class SiteOut(Output):
     owner_image_id: int | None
     history_image_id: int | None
     bio_photos: list[BioPhotoOut] = []
+    stats: SiteStats = SiteStats()
     event_types: list[str] = list(EVENT_TYPES)
     budgets: list[str] = list(BUDGETS)
 

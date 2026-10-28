@@ -21,11 +21,17 @@ servida pela própria API.
 - **Portfólio**: eventos com várias fotos, filtro por tipo (casamento, 15 anos, corporativo…),
   página de cada evento e visualização ampliada das fotos (setas do teclado funcionam).
 - Botão **Agendar evento** sempre à vista: leva ao pedido de orçamento.
+- Acabamento de site profissional: capa em tela cheia com zoom lento na foto, números do
+  buffet que contam ao aparecer (anos de história, eventos, convidados), faixa animada com os
+  tipos de evento, seção *Para cada ocasião* com a capa de cada tipo, galeria em mosaico e
+  visualizador de fotos com miniaturas e gesto de arrastar no celular. As animações respeitam
+  quem pede "menos movimento" no sistema.
 
 **Para os clientes**
 - **Cadastro** com nome, e-mail, telefone/WhatsApp e cidade. Quem clica em *Agendar evento*
   sem conta cria a conta e volta direto para o pedido.
-- **Pedido de orçamento**: tipo de evento, data, convidados, local, faixa de investimento e
+- **Pedido de orçamento em três etapas** (o evento, detalhes, revisar): tipo de evento em
+  cartões com ícone, data, convidados com botões de +/−, local, faixa de investimento e
   detalhes. O pedido abre uma **conversa** com o buffet.
 - **Minha conta**: lista de pedidos com situação e aviso de mensagens novas.
 
@@ -55,7 +61,7 @@ servida pela própria API.
 | Fotos | Guardadas no banco (sobrevivem a novos deploys). Toda foto é reaberta pelo Pillow: só entra imagem de verdade, o tamanho cai para no máximo 1920 px e os dados de GPS/EXIF do celular são removidos. Cache de um ano no navegador |
 | Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida |
 | Segurança | Senhas com PBKDF2 + sal, JWT, limite de tentativas de login, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador, cabeçalhos CSP / nosniff / frame-ancestors |
-| Qualidade | 48 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Qualidade | 49 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
 
 ```
