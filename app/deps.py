@@ -14,6 +14,7 @@ from app.models import User
 from app.security import read_access_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+optional_oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
 def get_settings(request: Request) -> Settings:
@@ -58,6 +59,19 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_optional_user(
+    token: Annotated[str | None, Depends(optional_oauth2)], db: SessionDep, settings: SettingsDep
+) -> User | None:
+    """Páginas públicas que mudam um pouco para quem entrou (ex.: o coração já marcado)."""
+    if not token:
+        return None
+    user_id = read_access_token(token, settings.secret_key)
+    return db.get(User, user_id) if user_id is not None else None
+
+
+MaybeUser = Annotated[User | None, Depends(get_optional_user)]
 
 
 def get_owner(user: CurrentUser) -> User:

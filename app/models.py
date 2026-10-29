@@ -12,6 +12,7 @@ from sqlalchemy import (
     LargeBinary,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -141,6 +142,32 @@ class EventPhoto(Base):
     position: Mapped[int] = mapped_column(Integer, default=0)
 
     event: Mapped[Event] = relationship(back_populates="photos")
+
+
+class EventLike(Base):
+    """Um coração deixado por uma pessoa cadastrada (no máximo um por evento)."""
+
+    __tablename__ = "event_likes"
+    __table_args__ = (UniqueConstraint("event_id", "user_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class EventComment(Base):
+    """Comentário ou feedback de uma pessoa cadastrada sobre um evento do portfólio."""
+
+    __tablename__ = "event_comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    user: Mapped[User] = relationship(lazy="joined")
 
 
 class Quote(Base):

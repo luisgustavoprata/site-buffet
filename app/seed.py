@@ -16,6 +16,8 @@ from app.images import process_upload
 from app.models import (
     BioPhoto,
     Event,
+    EventComment,
+    EventLike,
     EventPhoto,
     Image,
     Message,
@@ -128,6 +130,7 @@ def _site_is_blank(db: Session) -> bool:
 def seed_demo(db: Session, today: date, iterations: int) -> None:
     if db.scalar(select(User.id).where(User.email == DEMO_OWNER[0])) is not None:
         _refresh_old_demo(db)
+        _demo_reactions(db)
         return  # a demonstração já existe: reiniciar o servidor não duplica nada
     if not _site_is_blank(db):
         return  # o site já tem conteúdo de verdade: a demonstração não apaga nada
@@ -279,3 +282,31 @@ def seed_demo(db: Session, today: date, iterations: int) -> None:
     first = db.scalar(select(Message.id).where(Message.quote_id == quote.id).order_by(Message.id))
     quote.client_read_id = first  # as duas respostas da Helena aparecem como novas
     quote.owner_read_id = first + 2
+    _demo_reactions(db)
+
+
+def _demo_reactions(db: Session) -> None:
+    """Um coração e uma conversa nos comentários, para mostrar como a seção funciona."""
+    if db.scalar(select(EventComment.id).limit(1)) is not None:
+        return
+    owner = db.scalar(select(User).where(User.email == DEMO_OWNER[0]))
+    client = db.scalar(select(User).where(User.email == DEMO_CLIENT[0]))
+    wedding = db.scalar(select(Event).where(Event.title == "Casamento de Júlia e Rafael"))
+    if not (owner and client and wedding):
+        return
+    db.add(EventLike(event_id=wedding.id, user_id=client.id))
+    db.add(
+        EventComment(
+            event_id=wedding.id,
+            user_id=client.id,
+            body="Que mesa linda! Vocês montam a decoração de doces também?",
+        )
+    )
+    db.flush()
+    db.add(
+        EventComment(
+            event_id=wedding.id,
+            user_id=owner.id,
+            body="Obrigada, Marcos! Montamos sim, a mesa de doces é toda feita por nós.",
+        )
+    )

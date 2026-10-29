@@ -22,6 +22,9 @@ servida pela própria API.
 - **Portfólio**: eventos com várias fotos, filtro por tipo (casamento, 15 anos, corporativo…),
   página de cada evento e visualização ampliada das fotos (setas do teclado funcionam).
 - Botão **Agendar evento** sempre à vista: leva ao pedido de orçamento.
+- **Corações e comentários** nos eventos do portfólio: qualquer visitante vê; quem entra na conta
+  deixa um coração ou um comentário/feedback. A dona responde com o selo do buffet e pode apagar
+  comentários. Publicamente aparecem só o primeiro nome e a inicial do sobrenome.
 - Acabamento de site profissional: capa em tela cheia com zoom lento na foto, números do
   buffet que contam ao aparecer (anos de história, eventos, convidados), faixa animada com os
   tipos de evento, seção *Para cada ocasião* com a capa de cada tipo, galeria em mosaico e
@@ -65,7 +68,7 @@ servida pela própria API.
 | Fotos | Guardadas no banco (sobrevivem a novos deploys). Toda foto é reaberta pelo Pillow: só entra imagem de verdade, o tamanho cai para no máximo 1920 px e os dados de GPS/EXIF do celular são removidos. Cache de um ano no navegador |
 | Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida. Fotos da conversa são particulares: o endereço leva uma chave aleatória que só os participantes recebem |
 | Segurança | Senhas com PBKDF2 + sal, JWT, limite de tentativas de login, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador, cabeçalhos CSP / nosniff / frame-ancestors |
-| Qualidade | 52 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Qualidade | 56 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
 
 ```

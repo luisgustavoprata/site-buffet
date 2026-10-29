@@ -53,6 +53,7 @@ const ICONS = {
   up: '<path d="M5 15l7-7 7 7"/>',
   down: '<path d="M5 9l7 7 7-7"/>',
   trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/>',
 };
 
 function icon(name) {
@@ -750,7 +751,10 @@ function eventCard(e, extra = "") {
         h("span", { class: "card__type" }, e.event_type),
         h("h3", { class: "card__title" }, e.title),
         meta && h("p", { class: "card__meta" }, meta)),
-      e.photos.length > 1 && h("span", { class: "card__count" }, icon("photo"), e.photos.length)));
+      e.photos.length > 1 && h("span", { class: "card__count" }, icon("photo"), e.photos.length),
+      (e.likes > 0 || e.comments > 0) && h("span", { class: "card__reactions", "aria-label": `${plural(e.likes, "coração", "corações")}, ${plural(e.comments, "comentário", "comentários")}` },
+        e.likes > 0 && h("span", null, icon("heart"), e.likes),
+        e.comments > 0 && h("span", null, icon("chat"), e.comments))));
 }
 
 async function renderPortfolio(query) {
@@ -825,6 +829,7 @@ async function renderEvent(id) {
           class: "photo reveal", type: "button", "aria-label": `Ampliar foto ${i + 1} de ${photos.length}`,
           onclick: () => lightbox(photos, i, e.title),
         }, img(imageId, `${e.title}, foto ${i + 1}`)))) : null,
+      reactionsSection(e),
       (prev || next) && h("nav", { class: "pager-events", "aria-label": "Outros eventos" },
         prev ? h("a", { href: `#/portfolio/${prev.id}` }, h("small", null, "Anterior"), prev.title) : h("span"),
         next ? h("a", { href: `#/portfolio/${next.id}`, class: "is-next" }, h("small", null, "Próximo"), next.title) : h("span")),
@@ -833,6 +838,142 @@ async function renderEvent(id) {
         h("a", { class: "btn btn--light", href: "#/orcamento" }, "Agendar evento"))));
   animateOnScroll(area);
 }
+
+/* Corações e comentários de um evento do portfólio. Ver é livre; reagir pede a conta. */
+function reactionsSection(e) {
+  const loginLink = (label) => h("a", { class: "btn btn--primary btn--small", href: `#/entrar?volta=${encodeURIComponent(currentPath())}` }, label);
+  const heartCount = h("b");
+  const heart = h("button", { class: "heart-btn", type: "button" }, icon("heart"), h("span", null, "Amei"), heartCount);
+  const paintHeart = () => {
+    heart.classList.toggle("is-on", e.liked);
+    heart.setAttribute("aria-pressed", String(e.liked));
+    heart.setAttribute("aria-label", `${e.liked ? "Tirar o coração" : "Deixar um coração"} (${plural(e.likes, "coração", "corações")})`);
+    heartCount.textContent = e.likes ? NUMBER.format(e.likes) : "";
+  };
+  paintHeart();
+  heart.addEventListener("click", async () => {
+    if (!state.user) {
+      toast("Entre na sua conta para deixar um coração.");
+      go(`/entrar?volta=${encodeURIComponent(currentPath())}`);
+      return;
+    }
+    // Responde na hora e confirma com o servidor; se falhar, volta como estava.
+    const before = { liked: e.liked, likes: e.likes };
+    e.liked = !e.liked;
+    e.likes += e.liked ? 1 : -1;
+    paintHeart();
+    if (e.liked) {
+      heart.classList.remove("is-pop");
+      void heart.offsetWidth;
+      heart.classList.add("is-pop");
+    }
+    try {
+      const r = await (e.liked ? api.put(`/events/${e.id}/like`) : api.del(`/events/${e.id}/like`));
+      Object.assign(e, r);
+    } catch (err) {
+      Object.assign(e, before);
+      if (err.status !== 401) toast(err.message, "error");
+    }
+    paintHeart();
+  });
+
+  const countLabel = h("span", { class: "reactions__count" });
+  const list = h("ol", { class: "comments" });
+  const empty = h("p", { class: "comments__empty" }, "Ainda não há comentários. Conte o que achou deste evento!");
+  let total = e.comments;
+  const paintCount = () => {
+    countLabel.replaceChildren(icon("chat"), total ? plural(total, "comentário", "comentários") : "Nenhum comentário");
+    empty.hidden = total > 0;
+  };
+  paintCount();
+
+  const commentItem = (c) => {
+    const remove = c.can_delete && h("button", { class: "comment__delete", type: "button" }, "Apagar");
+    const item = h("li", { class: `comment${c.from_owner ? " comment--owner" : ""}` },
+      h("span", { class: "comment__avatar", "aria-hidden": "true" }, c.from_owner ? brandInitial() : c.author.charAt(0).toUpperCase()),
+      h("div", { class: "comment__main" },
+        h("p", { class: "comment__head" },
+          h("b", null, c.author),
+          c.from_owner && h("span", { class: "comment__badge" }, state.site.business_name),
+          h("time", { datetime: c.created_at, title: new Date(c.created_at).toLocaleString("pt-BR") }, relative(c.created_at)),
+          remove),
+        h("p", { class: "comment__body" }, c.body)));
+    if (remove) remove.addEventListener("click", async () => {
+      if (remove.dataset.confirm !== "1") {
+        remove.dataset.confirm = "1";
+        remove.textContent = "Confirmar";
+        setTimeout(() => { remove.dataset.confirm = ""; remove.textContent = "Apagar"; }, 4000);
+        return;
+      }
+      try {
+        await api.del(`/comments/${c.id}`);
+        item.remove();
+        total -= 1;
+        paintCount();
+        toast("Comentário apagado.");
+      } catch (err) {
+        if (err.status !== 401) toast(err.message, "error");
+      }
+    });
+    return item;
+  };
+
+  let composer;
+  if (state.user) {
+    const text = h("textarea", { class: "input", name: "body", rows: "2", maxlength: "1000", placeholder: isOwner() ? "Responder como " + state.site.business_name + "…" : "Escreva seu comentário ou feedback…", "aria-label": "Comentário" });
+    const send = h("button", { class: "btn btn--primary", type: "submit" }, "Comentar");
+    composer = h("form", { class: "comment-form" },
+      h("span", { class: "comment__avatar", "aria-hidden": "true" }, isOwner() ? brandInitial() : state.user.name.charAt(0).toUpperCase()),
+      h("div", { class: "comment-form__main" }, text,
+        h("div", { class: "comment-form__foot" },
+          h("small", { class: "muted" }, isOwner() ? "Sua resposta aparece com o selo do buffet." : "Aparece com seu primeiro nome e a inicial do sobrenome."),
+          send)));
+    composer.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const body = text.value.trim();
+      if (!body) {
+        text.focus();
+        return;
+      }
+      send.disabled = true;
+      try {
+        const c = await api.post(`/events/${e.id}/comments`, { body });
+        list.append(commentItem(c));
+        total += 1;
+        paintCount();
+        text.value = "";
+        toast("Comentário publicado. Obrigado!");
+      } catch (err) {
+        if (err.status !== 401) toast(err.message, "error");
+      } finally {
+        send.disabled = false;
+      }
+    });
+  } else {
+    composer = h("div", { class: "comment-login" },
+      h("p", null, "Entre na sua conta para deixar um coração ou comentar."),
+      h("div", { class: "comment-login__actions" },
+        loginLink("Entrar"),
+        h("a", { class: "btn btn--ghost btn--small", href: `#/cadastro?volta=${encodeURIComponent(currentPath())}` }, "Criar conta")));
+  }
+
+  const section = h("section", { class: "reactions reveal", "aria-label": "Reações e comentários" },
+    h("div", { class: "reactions__bar" }, heart, countLabel),
+    h("h2", { class: "reactions__title" }, "Comentários"),
+    empty, list, composer);
+
+  api.get(`/events/${e.id}/comments`).then((comments) => {
+    total = comments.length;
+    list.replaceChildren(...comments.map(commentItem));
+    paintCount();
+  }).catch(() => {
+    empty.textContent = "Não foi possível carregar os comentários agora.";
+    empty.hidden = false;
+  });
+  return section;
+}
+
+const brandInitial = () => (state.site.business_name || "B").charAt(0).toUpperCase();
 
 function lightbox(ids, start, title) {
   let index = start;
@@ -1646,7 +1787,8 @@ async function adminPortfolio(main) {
         h("div", null,
           h("h3", null, e.title),
           h("p", { class: "muted", style: "font-size:14px" },
-            [e.event_type, e.event_date && fmtShort(e.event_date), plural(e.photos.length, "foto", "fotos")].filter(Boolean).join(" · "))),
+            [e.event_type, e.event_date && fmtShort(e.event_date), plural(e.photos.length, "foto", "fotos"),
+              e.likes && plural(e.likes, "coração", "corações"), e.comments && plural(e.comments, "comentário", "comentários")].filter(Boolean).join(" · "))),
         h("div", { class: "admin-event__actions" },
           h("a", { class: "btn btn--ghost btn--small", href: `#/portfolio/${e.id}`, target: "_blank" }, "Ver"),
           h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: () => eventEditor(e, load) }, "Editar"),

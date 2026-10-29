@@ -222,6 +222,27 @@ class EventOut(Output):
     description: str
     photos: list[EventPhotoOut]
     created_at: UtcDatetime
+    likes: int = 0
+    comments: int = 0
+    liked: bool = False  # a pessoa que está vendo já deixou o coração
+
+
+class LikeOut(BaseModel):
+    likes: int
+    liked: bool
+
+
+class CommentCreate(Input):
+    body: str = Field(min_length=1, max_length=1000)
+
+
+class CommentOut(BaseModel):
+    id: int
+    author: str  # só o primeiro nome e a inicial do sobrenome: o comentário é público
+    from_owner: bool
+    body: str
+    created_at: UtcDatetime
+    can_delete: bool = False
 
 
 # ---------- Orçamentos e conversa ----------
