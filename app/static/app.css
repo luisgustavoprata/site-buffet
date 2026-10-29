@@ -674,3 +674,17 @@ h1 em, h2 em { color: var(--copper); }
 .bubble--me { background: var(--accent); }
 @media (max-width: 600px) { .brand--logo img { height: 40px; } }
 @media (max-width: 900px) { .stats__grid .stat:last-child:nth-child(odd) { grid-column: 1 / -1; border-left: 0; } }
+
+/* ---------- Margens: coluna central (marfim) com laterais areia e bordas cobre ---------- */
+.section:not(.section--dark) { position: relative; --col: min(1300px, calc(100% - 64px)); --side: #efe4d9; --edge: rgba(180, 112, 62, .45); }
+.section:not(.section--dark) + .section:not(.section--dark)::after { content: ""; position: absolute; top: 0; left: 50%; width: var(--col); transform: translateX(-50%); border-top: 1px solid var(--edge); pointer-events: none; }
+@media (min-width: 700px) {
+  .section:not(.section--dark) {
+    background: linear-gradient(90deg, var(--side) calc(50% - var(--col) / 2), var(--bg) calc(50% - var(--col) / 2), var(--bg) calc(50% + var(--col) / 2), var(--side) calc(50% + var(--col) / 2));
+  }
+  .section--sand:not(.section--dark) {
+    background: linear-gradient(90deg, var(--side) calc(50% - var(--col) / 2), var(--sand) calc(50% - var(--col) / 2), var(--sand) calc(50% + var(--col) / 2), var(--side) calc(50% + var(--col) / 2));
+  }
+  .section:not(.section--dark)::before { content: ""; position: absolute; inset: 0; margin: 0 auto; width: var(--col); border-left: 1px solid var(--edge); border-right: 1px solid var(--edge); pointer-events: none; }
+  .section--tight { padding-top: clamp(64px, 8vw, 104px); }
+}
