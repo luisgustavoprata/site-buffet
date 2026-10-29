@@ -688,3 +688,8 @@ h1 em, h2 em { color: var(--copper); }
   .section:not(.section--dark)::before { content: ""; position: absolute; inset: 0; margin: 0 auto; width: var(--col); border-left: 1px solid var(--edge); border-right: 1px solid var(--edge); pointer-events: none; }
   .section--tight { padding-top: clamp(64px, 8vw, 104px); }
 }
+
+/* Campo de data no iPhone: o Safari aumenta a largura e o campo passava da tela */
+input.input[type="date"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; min-height: 46px; line-height: 1.4; }
+input.input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+.field, .form__row > * { min-width: 0; }
