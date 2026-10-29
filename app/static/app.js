@@ -228,12 +228,16 @@ async function submitting(form, task) {
 
 /* ---------- Diálogo ---------- */
 
-function openModal(title, build) {
+function openModal(title, build, { onClose, className = "" } = {}) {
+  let closed = false;
   const close = () => {
+    if (closed) return;
+    closed = true;
+    onClose?.(); // devolve ao formulário o que estava na aba, antes de ela sumir
     dialog.close();
     dialog.remove();
   };
-  const dialog = h("dialog", { class: "modal", "aria-label": title });
+  const dialog = h("dialog", { class: `modal ${className}`.trim(), "aria-label": title });
   dialog.append(
     h("div", { class: "modal__head" }, h("h2", null, title),
       h("button", { class: "icon-btn", type: "button", "aria-label": "Fechar", onclick: close }, icon("close"))),
@@ -986,20 +990,32 @@ function renderQuoteForm() {
         b || "Prefiro conversar"))),
     h("p", { class: "field__error", "data-error-for": "budget" }));
 
+  const typeField = h("div", { class: "field" }, h("span", { class: "field__label" }, "Que tipo de evento?"), typeTiles,
+    h("p", { class: "field__error", "data-error-for": "event_type" }));
+  const dateField = field({ label: "Data do evento", name: "event_date", type: "date", required: true, min: todayISO() });
+  const locationField = field({ label: "Local do evento", name: "location", required: true, placeholder: "Salão, chácara, casa… e a cidade" });
+  const detailsField = field({ label: "Conte como você imagina a festa", name: "details", as: "textarea", placeholder: "Cardápio que gosta, restrições alimentares, horário, estilo da festa…", hint: "Opcional, mas ajuda a preparar uma proposta certeira." });
+  // Cada item da revisão abre só o campo dele numa aba, sem voltar ao começo.
+  const editors = {
+    event_type: { node: typeField, title: "Tipo de evento" },
+    event_date: { node: dateField, title: "Data do evento" },
+    guests: { node: stepper, title: "Número de convidados" },
+    location: { node: locationField, title: "Local do evento" },
+    budget: { node: budgetChips, title: "Quanto pretende investir" },
+    details: { node: detailsField, title: "Detalhes da festa" },
+  };
+
   const review = h("dl", { class: "review" });
   const panes = [
     h("fieldset", { class: "wizard__pane" },
       h("legend", { class: "sr-only" }, STEPS[0]),
-      h("div", { class: "field" }, h("span", { class: "field__label" }, "Que tipo de evento?"), typeTiles,
-        h("p", { class: "field__error", "data-error-for": "event_type" })),
-      h("div", { class: "form__row" },
-        field({ label: "Data do evento", name: "event_date", type: "date", required: true, min: todayISO() }),
-        stepper)),
+      typeField,
+      h("div", { class: "form__row" }, dateField, stepper)),
     h("fieldset", { class: "wizard__pane" },
       h("legend", { class: "sr-only" }, STEPS[1]),
-      field({ label: "Local do evento", name: "location", required: true, placeholder: "Salão, chácara, casa… e a cidade" }),
+      locationField,
       budgetChips,
-      field({ label: "Conte como você imagina a festa", name: "details", as: "textarea", placeholder: "Cardápio que gosta, restrições alimentares, horário, estilo da festa…", hint: "Opcional, mas ajuda a preparar uma proposta certeira." })),
+      detailsField),
     h("fieldset", { class: "wizard__pane" },
       h("legend", { class: "sr-only" }, STEPS[2]),
       h("p", { class: "muted" }, "Confira antes de enviar. Depois, a conversa continua na sua conta."),
@@ -1029,17 +1045,61 @@ function renderQuoteForm() {
     nextBtn.textContent = i === STEPS.length - 1 ? "Enviar pedido e abrir conversa" : "Continuar";
     if (i === 2) {
       const d = v();
-      const row = (label, value, step) => [h("dt", null, label), h("dd", null, value || h("span", { class: "muted" }, "—"),
-        h("button", { class: "link-btn", type: "button", onclick: () => show(step) }, "alterar"))];
+      const row = (label, value, key) => [h("dt", null, label), h("dd", null, value || h("span", { class: "muted" }, "—"),
+        h("button", { class: "link-btn", type: "button", "aria-label": `Alterar ${label.toLowerCase()}`, onclick: () => editField(key) }, "alterar"))];
       fill(review,
-        row("Evento", d.event_type, 0),
-        row("Data", fmtDate(d.event_date), 0),
-        row("Convidados", d.guests && plural(Number(d.guests), "convidado", "convidados"), 0),
-        row("Local", d.location, 1),
-        row("Investimento", d.budget || "Prefiro conversar", 1),
-        row("Detalhes", d.details, 1));
+        row("Evento", d.event_type, "event_type"),
+        row("Data", fmtDate(d.event_date), "event_date"),
+        row("Convidados", d.guests && plural(Number(d.guests), "convidado", "convidados"), "guests"),
+        row("Local", d.location, "location"),
+        row("Investimento", d.budget || "Prefiro conversar", "budget"),
+        row("Detalhes", d.details, "details"));
     }
     panes[i].querySelector("input:not([type=radio]), textarea, input")?.focus({ preventScroll: true });
+  }
+
+  /** Erros de um campo só (as mesmas regras das etapas). */
+  function fieldErrors(key, d) {
+    if (key === "event_type" && !d.event_type) return "Escolha o tipo de evento.";
+    if (key === "event_date" && !d.event_date) return "Informe a data.";
+    if (key === "event_date" && d.event_date < todayISO()) return "A data já passou.";
+    if (key === "guests" && !(Number(d.guests) > 0)) return "Informe quantos convidados.";
+    if (key === "location" && (d.location || "").trim().length < 2) return "Informe o local do evento.";
+    return null;
+  }
+
+  /** Abre uma aba com o campo escolhido, já preenchido; ao salvar, volta para a revisão. */
+  function editField(key) {
+    const { node, title } = editors[key];
+    const spot = document.createComment("campo");
+    const controls = () => [...node.querySelectorAll("input, textarea")];
+    const before = controls().map((el) => (el.type === "radio" ? el.checked : el.value));
+    let saved = false;
+    node.replaceWith(spot);
+    openModal(`Alterar: ${title.toLowerCase()}`, (close) => {
+      const save = h("button", { class: "btn btn--primary", type: "button" }, "Salvar alteração");
+      save.addEventListener("click", () => {
+        const values = Object.fromEntries(controls().filter((el) => el.type !== "radio" || el.checked).map((el) => [el.name, el.value]));
+        const message = fieldErrors(key, values);
+        const slot = node.querySelector(`[data-error-for="${key}"]`);
+        if (slot) slot.textContent = message || "";
+        if (message) return;
+        saved = true;
+        close();
+        toast("Alteração salva.");
+      });
+      return h("div", { class: "form" }, node,
+        h("div", { class: "form__actions" },
+          h("button", { class: "btn btn--ghost", type: "button", onclick: close }, "Cancelar"), save));
+    }, {
+      className: "modal--sheet",
+      onClose: () => {
+        if (!saved) controls().forEach((el, i) => (el.type === "radio" ? (el.checked = before[i]) : (el.value = before[i])));
+        node.querySelectorAll("[data-error-for]").forEach((el) => (el.textContent = ""));
+        spot.replaceWith(node);
+        show(2); // continua na revisão, com o valor novo
+      },
+    });
   }
 
   function checkStep(i) {

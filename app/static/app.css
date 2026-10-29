@@ -693,3 +693,14 @@ h1 em, h2 em { color: var(--copper); }
 input.input[type="date"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; min-height: 46px; line-height: 1.4; }
 input.input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .field, .form__row > * { min-width: 0; }
+
+/* Aba de alteração na revisão do orçamento: no celular, sobe de baixo como uma gaveta */
+dialog.modal--sheet { width: min(620px, calc(100vw - 24px)); }
+dialog.modal--sheet .tiles { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+@media (max-width: 600px) {
+  dialog.modal--sheet { width: 100vw; max-width: 100vw; max-height: 88vh; margin: auto 0 0; border-radius: 22px 22px 0 0; animation: sheet-up .25s ease-out; }
+  dialog.modal--sheet .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  dialog.modal--sheet .form__actions { position: sticky; bottom: 0; background: var(--paper); padding: 12px 0 4px; }
+  dialog.modal--sheet .form__actions .btn { flex: 1; }
+}
+@keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } }
