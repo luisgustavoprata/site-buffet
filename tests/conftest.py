@@ -32,6 +32,7 @@ def settings(tmp_path) -> Settings:
         owner_password=PASSWORD,
         owner_name="Helena",
         max_upload_mb=1,
+        push_scheduler=False,
     )
 
 

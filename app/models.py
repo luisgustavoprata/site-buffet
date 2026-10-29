@@ -23,6 +23,11 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+def as_utc(value: datetime) -> datetime:
+    """O SQLite devolve as datas sem fuso; elas sempre foram gravadas em UTC."""
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
 class Role(enum.StrEnum):
     OWNER = "owner"  # a dona do buffet: edita o site e responde os orçamentos
     CLIENT = "client"  # quem se cadastra para pedir orçamento
@@ -229,3 +234,42 @@ class Message(Base):
     @property
     def image_height(self) -> int | None:
         return self.image.height if self.image else None
+
+
+class PushDevice(Base):
+    """Um navegador/aparelho que aceitou receber notificações (cada pessoa pode ter vários)."""
+
+    __tablename__ = "push_devices"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    endpoint: Mapped[str] = mapped_column(String(1000), unique=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship(lazy="joined")
+
+
+class PushPlan(Base):
+    """Notificações programadas para um dia, em horários sorteados dentro da janela."""
+
+    __tablename__ = "push_plans"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    day: Mapped[date] = mapped_column(Date, index=True)
+    send_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    message_key: Mapped[str] = mapped_column(String(40))
+    status: Mapped[str] = mapped_column(String(20), default="programada")  # enviada, pulada
+    devices: Mapped[int] = mapped_column(Integer, default=0)
+    done_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AppSecret(Base):
+    """Chaves geradas pelo próprio site e guardadas no banco (ex.: a chave das notificações)."""
+
+    __tablename__ = "app_secrets"
+
+    name: Mapped[str] = mapped_column(String(60), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)

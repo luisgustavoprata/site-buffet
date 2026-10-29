@@ -36,6 +36,14 @@ class Settings:
     login_window_seconds: int = 300
     max_upload_mb: int = 10
     environment: str = "development"
+    # Notificações: quantas por dia (0 desliga) e a janela de horário (Brasília).
+    push_per_day: int = 2
+    push_start_hour: int = 7
+    push_end_hour: int = 19  # nenhuma notificação a partir deste horário
+    push_timezone: str = "America/Sao_Paulo"
+    push_scheduler: bool = True  # verificação automática em segundo plano
+    push_subject: str = "mailto:contato@brunoisegastronomia.com.br"
+    vapid_private_key: str = ""  # vazio: o site gera uma e guarda no banco
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -54,7 +62,15 @@ class Settings:
             login_window_seconds=int(env.get("LOGIN_WINDOW_SECONDS") or 300),
             max_upload_mb=int(env.get("MAX_UPLOAD_MB") or 10),
             environment=env.get("ENVIRONMENT") or "development",
+            push_per_day=int(env.get("PUSH_PER_DAY") or cls.push_per_day),
+            push_start_hour=int(env.get("PUSH_START_HOUR") or cls.push_start_hour),
+            push_end_hour=int(env.get("PUSH_END_HOUR") or cls.push_end_hour),
+            push_scheduler=_bool(env.get("PUSH_SCHEDULER"), True),
+            push_subject=env.get("PUSH_SUBJECT") or cls.push_subject,
+            vapid_private_key=env.get("VAPID_PRIVATE_KEY") or "",
         )
+        if not 0 <= settings.push_start_hour < settings.push_end_hour <= 24:
+            raise RuntimeError("PUSH_START_HOUR precisa ser menor que PUSH_END_HOUR.")
         if settings.environment == "production" and settings.secret_key == DEV_SECRET_KEY:
             raise RuntimeError("Defina SECRET_KEY em produção.")
         if settings.owner_password and len(settings.owner_password) < 8:

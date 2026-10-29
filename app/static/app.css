@@ -783,3 +783,44 @@ dialog.modal--sheet .tiles { grid-template-columns: repeat(auto-fill, minmax(120
   .comment-login__actions .btn { flex: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .heart-btn.is-pop svg { animation: none; } }
+
+/* Notificações */
+.push-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: start; padding: 20px 22px; border-radius: var(--radius); border: 1px solid var(--line); background: linear-gradient(135deg, #fffaf5, #f8ece3); }
+.push-card h2 { font-size: 22px; margin-bottom: 4px; }
+.push-card__icon, .push-invite__icon { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; flex: none; }
+.push-card__icon svg, .push-invite__icon svg { width: 22px; height: 22px; }
+.push-card__body { display: grid; gap: 12px; color: var(--ink-soft); }
+.push-card__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.push-card__actions:empty { display: none; }
+
+.push-invite { position: fixed; z-index: 80; right: 20px; bottom: 20px; width: min(420px, calc(100vw - 32px)); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 18px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow-pop); animation: invite-in .35s ease-out; }
+.push-invite strong { display: block; font-size: 16px; margin-bottom: 2px; }
+.push-invite p { font-size: 14px; color: var(--ink-soft); line-height: 1.45; }
+.push-invite__actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; }
+.push-invite.is-leaving { opacity: 0; transform: translateY(12px); transition: .25s; }
+@keyframes invite-in { from { opacity: 0; transform: translateY(16px); } }
+@media (max-width: 600px) {
+  .push-invite { left: 16px; right: 16px; bottom: 16px; width: auto; }
+  .push-invite__actions .btn { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .push-invite { animation: none; } }
+
+.push-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.push-stat { padding: 18px 20px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line); display: grid; gap: 2px; }
+.push-stat strong { font-family: "Fraunces", serif; font-size: 34px; font-weight: 500; color: var(--accent); }
+.push-stat span { color: var(--muted); font-size: 14px; }
+.push-today, .push-catalog { display: grid; gap: 12px; }
+.push-today h2, .push-catalog h2 { font-size: 24px; }
+.push-today ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.push-today li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 16px; border-radius: var(--radius-s); background: var(--paper); border: 1px solid var(--line); }
+.push-today time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.push-today em { font-style: normal; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--sand); color: var(--ink-soft); }
+.push-today .is-enviada em { background: #e6f2e8; color: #2d6a3a; }
+.push-today .is-pulada em { background: #f1ece9; color: var(--muted); }
+.push-catalog ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.push-catalog li { padding: 14px 16px; border-radius: var(--radius-s); background: var(--paper); border: 1px solid var(--line); display: grid; gap: 4px; align-content: start; }
+.push-catalog li p { font-size: 14px; color: var(--ink-soft); }
+.push-tone { justify-self: start; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.push-tone--divertida { background: #fbe9dc; color: #9a5526; }
+.push-tone--convite { background: #ece6f3; color: #5b4a7a; }
+@media (max-width: 600px) { .push-card { grid-template-columns: 1fr; } .push-today li { grid-template-columns: 52px minmax(0, 1fr); } .push-today em { grid-column: 2; justify-self: start; } }

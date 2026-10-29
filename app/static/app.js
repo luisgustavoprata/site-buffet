@@ -53,6 +53,7 @@ const ICONS = {
   up: '<path d="M5 15l7-7 7 7"/>',
   down: '<path d="M5 9l7 7 7-7"/>',
   trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
   heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/>',
 };
 
@@ -350,6 +351,7 @@ const session = {
     api.token = data.access_token;
     state.user = await api.get("/auth/me");
     refreshUnread();
+    push.sync();
     return state.user;
   },
   async restore() {
@@ -365,7 +367,9 @@ const session = {
     state.user = null;
     state.unread = { unread: 0, new_quotes: 0 };
   },
-  logout() {
+  async logout() {
+    await push.disable().catch(() => {}); // o aparelho para de receber avisos desta conta
+    document.querySelector(".push-invite")?.remove();
     this.clear();
     toast("Você saiu da sua conta.");
     go("/");
@@ -487,6 +491,186 @@ function publicPage(content, opts = {}) {
   fill(root(),
     h("a", { class: "skip", href: "#conteudo", onclick: (e) => { e.preventDefault(); document.getElementById("conteudo")?.focus(); } }, "Pular para o conteúdo"),
     header(opts), h("main", { id: "conteudo", tabindex: "-1" }, content), footer());
+  pushInvite();
+}
+
+/* ===================== Notificações (celular e computador) ===================== */
+
+const push = {
+  registration: null,
+  config: null,
+  supported: () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
+  // No iPhone/iPad, o Safari só entrega notificações com o site adicionado à Tela de Início.
+  isIOS: () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
+  standalone: () => window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true,
+
+  async register() {
+    if (!("serviceWorker" in navigator)) return null;
+    try {
+      this.registration = await navigator.serviceWorker.register("/sw.js");
+    } catch {
+      this.registration = null;
+    }
+    return this.registration;
+  },
+  async subscription() {
+    if (!this.supported()) return null;
+    const reg = this.registration || (await this.register());
+    return reg ? reg.pushManager.getSubscription().catch(() => null) : null;
+  },
+  async getConfig() {
+    this.config = this.config || (await api.get("/push/config"));
+    return this.config;
+  },
+  /** "on" | "off" | "denied" | "ios-install" | "unsupported" */
+  async state() {
+    if (this.isIOS() && !this.standalone()) return "ios-install";
+    if (!this.supported()) return "unsupported";
+    if (Notification.permission === "denied") return "denied";
+    const sub = await this.subscription();
+    return sub && Notification.permission === "granted" ? "on" : "off";
+  },
+  async enable() {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      throw new ApiError(0, permission === "denied"
+        ? "As notificações foram bloqueadas. Dá para liberar nas configurações do navegador."
+        : "Tudo bem! Você pode ativar quando quiser.");
+    }
+    const config = await this.getConfig();
+    const reg = (await this.register()) && (await navigator.serviceWorker.ready);
+    const key = b64ToBytes(config.public_key);
+    let sub = await reg.pushManager.getSubscription();
+    const sameKey = (s) => {
+      const k = s.options?.applicationServerKey;
+      return !k || new Uint8Array(k).every((v, i) => v === key[i]);
+    };
+    if (sub && !sameKey(sub)) {
+      await sub.unsubscribe(); // a chave do site mudou: assina de novo
+      sub = null;
+    }
+    sub = sub || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }));
+    await api.post("/push/devices", sub.toJSON());
+  },
+  async disable() {
+    const sub = await this.subscription();
+    if (!sub) return;
+    if (state.user) await api.del(`/push/devices?endpoint=${encodeURIComponent(sub.endpoint)}`).catch(() => {});
+    await sub.unsubscribe();
+  },
+  /** Quem já ativou e entrou de novo: o aparelho fica ligado à conta atual. */
+  async sync() {
+    if (!state.user || !this.supported() || Notification.permission !== "granted") return;
+    const sub = await this.subscription();
+    if (sub) api.post("/push/devices", sub.toJSON()).catch(() => {});
+  },
+};
+
+function b64ToBytes(value) {
+  const base64 = (value + "=".repeat((4 - (value.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+}
+
+const PUSH_INVITE_KEY = "buffet.push.convite";
+
+/** Convite discreto para ativar, para clientes logados que ainda não decidiram. */
+async function pushInvite() {
+  if (!state.user || isOwner() || document.querySelector(".push-invite") || pushInvite.shown) return;
+  try {
+    const last = Number(localStorage.getItem(PUSH_INVITE_KEY) || 0);
+    if (Date.now() - last < 14 * 86400000) return; // "agora não": pergunta de novo em 2 semanas
+  } catch {
+    /* sem armazenamento: segue */
+  }
+  if ((await push.state()) !== "off") return;
+  pushInvite.shown = true;
+  const later = () => {
+    try {
+      localStorage.setItem(PUSH_INVITE_KEY, String(Date.now()));
+    } catch {
+      /* ignora */
+    }
+    card.classList.add("is-leaving");
+    setTimeout(() => card.remove(), 250);
+  };
+  const yes = h("button", { class: "btn btn--primary btn--small", type: "button" }, "Ativar");
+  const card = h("aside", { class: "push-invite", role: "dialog", "aria-label": "Ativar notificações" },
+    h("span", { class: "push-invite__icon" }, icon("bell")),
+    h("div", null,
+      h("strong", null, "Quer receber novidades?"),
+      h("p", null, "Ideias de festa e fotos novas no seu celular ou computador. Só durante o dia, sem exagero.")),
+    h("div", { class: "push-invite__actions" },
+      h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: later }, "Agora não"), yes));
+  yes.addEventListener("click", async () => {
+    yes.disabled = true;
+    try {
+      await push.enable();
+      toast("Notificações ativadas! 🔔");
+      card.remove();
+    } catch (err) {
+      toast(err.message, err.status === 0 ? undefined : "error");
+      later();
+    }
+  });
+  setTimeout(async () => {
+    // Confere de novo: nesse meio-tempo a pessoa pode ter ativado ou saído da conta.
+    if (state.user && !isOwner() && (await push.state()) === "off") document.body.append(card);
+  }, 2500);
+}
+
+/** Cartão para ativar, testar e desativar as notificações neste aparelho. */
+function pushCard({ owner = false } = {}) {
+  const body = h("div", { class: "push-card__body" }, h("p", { class: "muted" }, "Verificando este aparelho…"));
+  const card = h("section", { class: "push-card", "aria-label": "Notificações" },
+    h("span", { class: "push-card__icon" }, icon("bell")),
+    h("div", null, h("h2", null, "Notificações"), body));
+  const button = (label, cls, action) => {
+    const b = h("button", { class: `btn ${cls} btn--small`, type: "button" }, label);
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        await action();
+      } catch (err) {
+        toast(err.message, err.status === 0 ? undefined : "error");
+      } finally {
+        b.disabled = false;
+        paint();
+      }
+    });
+    return b;
+  };
+  const paint = async () => {
+    const st = await push.state();
+    const config = await push.getConfig().catch(() => null);
+    const window_ = config ? `das ${config.start_hour}h às ${config.end_hour}h` : "durante o dia";
+    const texts = {
+      off: owner
+        ? "Ative neste aparelho para ver como as notificações chegam para os clientes."
+        : `Receba ideias de festa, novidades e fotos novas no celular ou no computador. Só ${window_}, sem exagero.`,
+      on: "Ativadas neste aparelho. ✅",
+      denied: "As notificações estão bloqueadas neste navegador. Para liberar, toque no cadeado ao lado do endereço do site e permita as notificações.",
+      "ios-install": "No iPhone, as notificações funcionam com o site na Tela de Início: toque em Compartilhar e depois em \"Adicionar à Tela de Início\". Abra pelo novo ícone e ative aqui.",
+      unsupported: "Este navegador não recebe notificações. Tente no Chrome, Edge, Firefox ou Safari.",
+    };
+    const actions = h("div", { class: "push-card__actions" });
+    if (st === "off") actions.append(button("Ativar notificações", "btn--primary", async () => {
+      await push.enable();
+      document.querySelector(".push-invite")?.remove();
+      toast("Notificações ativadas! 🔔");
+    }));
+    if (st === "on") actions.append(
+      button("Enviar uma de teste", "btn--primary", async () => {
+        const r = await api.post("/push/test");
+        toast(r.sent ? "Enviada! Ela chega em alguns segundos." : "Não foi possível entregar agora. Tente ativar de novo.");
+      }),
+      button("Desativar", "btn--ghost", async () => {
+        await push.disable();
+        toast("Notificações desativadas neste aparelho.");
+      }));
+    body.replaceChildren(h("p", null, texts[st]), actions);
+  };
+  paint();
+  return card;
 }
 
 const ROUTES = [
@@ -501,7 +685,7 @@ const ROUTES = [
   [/^\/conta\/pedidos\/(\d+)$/, (m) => renderAccount(Number(m[1]))],
   [/^\/painel$/, () => renderAdmin("pedidos")],
   [/^\/painel\/pedidos\/(\d+)$/, (m) => renderAdmin("pedidos", Number(m[1]))],
-  [/^\/painel\/(portfolio|site|clientes)$/, (m) => renderAdmin(m[1])],
+  [/^\/painel\/(portfolio|site|clientes|notificacoes)$/, (m) => renderAdmin(m[1])],
 ];
 
 let renderSeq = 0;
@@ -532,6 +716,7 @@ async function boot() {
     return;
   }
   refreshUnread();
+  push.register().then(() => push.sync());
   window.addEventListener("hashchange", () => {
     window.scrollTo(0, 0);
     render();
@@ -1349,6 +1534,7 @@ async function renderAccount(openId) {
         h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: editProfile }, "Meus dados"),
         h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: () => session.logout() }, "Sair"),
         h("a", { class: "btn btn--primary btn--small", href: "#/orcamento" }, "Novo pedido"))),
+    pushCard(),
     h("section", { "aria-labelledby": "t-pedidos", style: "display:grid;gap:14px" },
       h("h2", { id: "t-pedidos", style: "font-size:26px" }, "Meus pedidos de orçamento"),
       quotes.length
@@ -1651,6 +1837,7 @@ const ADMIN_TABS = [
   ["portfolio", "Portfólio", "#/painel/portfolio"],
   ["site", "Textos e fotos do site", "#/painel/site"],
   ["clientes", "Clientes", "#/painel/clientes"],
+  ["notificacoes", "Notificações", "#/painel/notificacoes"],
 ];
 
 async function renderAdmin(tab, openId) {
@@ -1667,7 +1854,7 @@ async function renderAdmin(tab, openId) {
       h("a", { href: "#/" }, "Ver o site"),
       h("a", { href: "#", onclick: (e) => { e.preventDefault(); session.logout(); } }, "Sair")),
     main));
-  const views = { pedidos: adminQuotes, portfolio: adminPortfolio, site: adminSite, clientes: adminClients };
+  const views = { pedidos: adminQuotes, portfolio: adminPortfolio, site: adminSite, clientes: adminClients, notificacoes: adminPush };
   await views[tab](main, openId);
 }
 
@@ -2028,6 +2215,51 @@ async function adminSite(main) {
 }
 
 /* ---------- Clientes ---------- */
+
+/* ---------- Notificações ---------- */
+
+const PLAN_STATUS = { programada: "Programada", enviando: "Enviando", enviada: "Enviada", pulada: "Não enviada" };
+
+async function adminPush(main) {
+  fill(main, loading());
+  let d;
+  try {
+    d = await api.get("/admin/push");
+  } catch (err) {
+    fill(main, h("div", { class: "empty" }, err.message));
+    return;
+  }
+  const stat = (n, label) => h("div", { class: "push-stat" }, h("strong", null, NUMBER.format(n)), h("span", null, label));
+  fill(main,
+    h("div", { class: "admin__head" },
+      h("div", null, h("p", { class: "eyebrow" }, "Painel"), h("h1", null, "Notificações"))),
+    h("p", { class: "muted", style: "max-width:720px" },
+      `Os clientes que ativam as notificações recebem ${plural(d.per_day, "mensagem", "mensagens")} por dia, em horários sorteados entre ${d.start_hour}h e ${d.end_hour}h (horário de Brasília). Depois das ${d.end_hour}h nada é enviado.`),
+    h("div", { class: "push-stats" },
+      stat(d.clients, d.clients === 1 ? "cliente com notificações" : "clientes com notificações"),
+      stat(d.devices, d.devices === 1 ? "aparelho" : "aparelhos"),
+      stat(d.sent_7_days, "entregas nos últimos 7 dias")),
+    h("section", { class: "push-today" },
+      h("h2", null, "Hoje"),
+      d.today.length
+        ? h("ol", null, d.today.map((p) => h("li", { class: `is-${p.status}` },
+            h("time", null, p.time), h("span", null, p.title), h("em", null, PLAN_STATUS[p.status] || p.status))))
+        : h("p", { class: "muted" }, `Os horários de hoje já passaram. Amanhã o site sorteia novos horários a partir das ${d.start_hour}h.`)),
+    pushCard({ owner: true }),
+    h("section", { class: "push-catalog" },
+      h("h2", null, "Mensagens que podem ser enviadas"),
+      h("p", { class: "muted" }, "O site alterna entre estas mensagens, sem repetir as mais recentes. \"{nome}\" vira o primeiro nome do cliente."),
+      h("ul", null, d.messages.map((m) => h("li", null,
+        h("span", { class: `push-tone push-tone--${m.tone}` }, m.tone === "divertida" ? "Divertida" : "Convite"),
+        h("strong", null, fillPlaceholders(m.title)),
+        h("p", null, fillPlaceholders(m.body)))))));
+}
+
+function fillPlaceholders(text) {
+  return text
+    .replaceAll("{empresa}", state.site.business_name)
+    .replaceAll("{chef}", firstName(state.site.owner_name, "equipe"));
+}
 
 async function adminClients(main) {
   const area = h("div", null, loading());

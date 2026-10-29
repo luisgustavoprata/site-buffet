@@ -41,6 +41,11 @@ servida pela própria API.
 - Na revisão do pedido, cada item tem *alterar*: abre uma aba só com aquele campo, sem
   voltar ao início.
 - **Minha conta**: lista de pedidos com situação e aviso de mensagens novas.
+- **Notificações no celular e no computador** (barra de notificações do sistema): o cliente
+  ativa com um toque e recebe mensagens do buffet, umas divertidas, com trocadilhos puxando
+  para uma festa, e outras tranquilas, convidando a ver as fotos e conhecer a história. São
+  2 por dia, em horários sorteados entre 7h e 19h (horário de Brasília). Depois das 19h
+  nada é enviado. Tocar na notificação abre a página certa do site.
 
 **Para a dona do buffet (painel)**
 - **Orçamentos**: caixa de entrada com busca e filtro por situação (novo, em conversa,
@@ -50,6 +55,8 @@ servida pela própria API.
   (arrastando), reordenar e escolher a capa.
 - **Textos e fotos do site**: capa, biografia, história, contato e todas as fotos.
 - **Clientes**: todos os cadastrados, com contato e quantidade de pedidos.
+- **Notificações**: quantos clientes ativaram, os horários sorteados de hoje e todas as
+  mensagens que podem ser enviadas.
 
 | Sobre mim | Portfólio |
 |---|---|
@@ -68,7 +75,8 @@ servida pela própria API.
 | Fotos | Guardadas no banco (sobrevivem a novos deploys). Toda foto é reaberta pelo Pillow: só entra imagem de verdade, o tamanho cai para no máximo 1920 px e os dados de GPS/EXIF do celular são removidos. Cache de um ano no navegador |
 | Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida. Fotos da conversa são particulares: o endereço leva uma chave aleatória que só os participantes recebem |
 | Segurança | Senhas com PBKDF2 + sal, JWT, limite de tentativas de login, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador, cabeçalhos CSP / nosniff / frame-ancestors |
-| Qualidade | 56 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Qualidade | 93 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Notificações | Web Push implementado no próprio projeto (RFC 8291 para cifrar, RFC 8292/VAPID para assinar), testado contra o exemplo oficial da RFC. Funciona no Chrome, Edge, Firefox e Safari (no iPhone, com o site adicionado à Tela de Início). A chave do site é gerada e guardada no banco. Só aceita endereços dos serviços de push conhecidos (Google, Mozilla, Apple, Microsoft) |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
 
 ```
@@ -126,6 +134,15 @@ exemplo num SQLite interno, que volta ao exemplo sempre que o servidor reinicia.
 | `OWNER_EMAIL`, `OWNER_PASSWORD`, `OWNER_NAME` | Conta da administração |
 | `SEED_DEMO` | `true` preenche o site de exemplo (só com o banco vazio) |
 | `MAX_UPLOAD_MB` | Tamanho máximo de cada foto enviada (padrão 10) |
+| `PUSH_PER_DAY` | Notificações por dia para os clientes (padrão 2; `0` desliga) |
+| `PUSH_START_HOUR`, `PUSH_END_HOUR` | Janela de envio, horário de Brasília (padrão 7 e 19) |
+| `PUSH_SUBJECT` | Contato do site para os serviços de push (`mailto:...`) |
+| `VAPID_PRIVATE_KEY` | Opcional: chave das notificações. Sem ela, o site gera uma e guarda no banco |
+
+**Notificações e o plano gratuito do Render:** o servidor gratuito "dorme" depois de 15 minutos
+sem visitas, e dormindo ele não envia nada (a notificação daquele horário é pulada, nunca
+enviada fora da janela). Para enviar todo dia, use um plano pago ou um monitor que visite
+`/health` a cada 10 minutos (ex.: UptimeRobot).
 
 ## Licença
 
