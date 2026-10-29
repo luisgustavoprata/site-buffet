@@ -64,6 +64,8 @@ class Image(Base):
     width: Mapped[int] = mapped_column(Integer)
     height: Mapped[int] = mapped_column(Integer)
     data: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
+    # Fotos da conversa são particulares: só abrem com esta chave no endereço (?k=...).
+    access_key: Mapped[str | None] = mapped_column(String(64), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -179,6 +181,24 @@ class Message(Base):
     sender_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     from_owner: Mapped[bool] = mapped_column(default=False)
     body: Mapped[str] = mapped_column(Text)
+    image_id: Mapped[int | None] = mapped_column(
+        ForeignKey("images.id", ondelete="SET NULL"), default=None
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     quote: Mapped[Quote] = relationship(back_populates="messages")
+    image: Mapped[Image | None] = relationship(lazy="joined")
+
+    @property
+    def image_url(self) -> str | None:
+        if self.image is None:
+            return None
+        return f"/media/{self.image.id}?k={self.image.access_key}"
+
+    @property
+    def image_width(self) -> int | None:
+        return self.image.width if self.image else None
+
+    @property
+    def image_height(self) -> int | None:
+        return self.image.height if self.image else None

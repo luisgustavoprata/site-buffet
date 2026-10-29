@@ -1,13 +1,13 @@
 """Apresentação do buffet (textos e fotos) e envio de imagens."""
 
+from hmac import compare_digest
 from typing import Annotated
 
-from fastapi import APIRouter, File, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile, status
 from fastapi import Path as PathParam
 from sqlalchemy import func, select
 
 from app.deps import OwnerUser, SessionDep, SettingsDep
-from app.images import InvalidImage, process_upload
 from app.models import BioPhoto, Event, EventPhoto, Image
 from app.schemas import (
     BioPhotoCreate,
@@ -18,7 +18,7 @@ from app.schemas import (
     SiteStats,
     SiteUpdate,
 )
-from app.services import delete_unused_images, get_site, require_images
+from app.services import delete_unused_images, get_site, require_images, store_upload
 
 router = APIRouter(tags=["Site"])
 
@@ -106,26 +106,7 @@ async def upload_image(
     settings: SettingsDep,
     _owner: OwnerUser,
 ) -> Image:
-    limit = settings.max_upload_mb * 1024 * 1024
-    raw = await file.read(limit + 1)
-    if len(raw) > limit:
-        raise HTTPException(
-            status.HTTP_413_CONTENT_TOO_LARGE,
-            f"A foto passa de {settings.max_upload_mb} MB. Envie uma versão menor.",
-        )
-    try:
-        processed = process_upload(raw)
-    except InvalidImage as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
-    image = Image(
-        data=processed.data,
-        content_type=processed.content_type,
-        width=processed.width,
-        height=processed.height,
-    )
-    db.add(image)
-    db.flush()
-    return image
+    return await store_upload(db, file, settings)
 
 
 @router.get(
@@ -134,13 +115,23 @@ async def upload_image(
     response_class=Response,
     responses={200: {"content": {"image/jpeg": {}, "image/webp": {}}}, 404: {}},
 )
-def read_image(image_id: Annotated[int, PathParam(ge=1)], db: SessionDep) -> Response:
-    row = db.execute(select(Image.data, Image.content_type).where(Image.id == image_id)).first()
-    if row is None:
+def read_image(
+    image_id: Annotated[int, PathParam(ge=1)],
+    db: SessionDep,
+    k: Annotated[
+        str | None, Query(max_length=64, description="Chave das fotos da conversa.")
+    ] = None,
+) -> Response:
+    row = db.execute(
+        select(Image.data, Image.content_type, Image.access_key).where(Image.id == image_id)
+    ).first()
+    # Foto da conversa sem a chave certa responde como se não existisse.
+    if row is None or (row.access_key and not compare_digest(row.access_key, k or "")):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Foto não encontrada.")
     # Cada foto tem um id próprio e nunca muda: o navegador pode guardar por um ano.
+    scope = "private" if row.access_key else "public"
     return Response(
         content=row.data,
         media_type=row.content_type,
-        headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        headers={"Cache-Control": f"{scope}, max-age=31536000, immutable"},
     )

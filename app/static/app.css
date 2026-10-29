@@ -271,7 +271,7 @@ select.input { appearance: none; padding-right: 40px; background-image: url("dat
 .bubble--them { align-self: flex-start; background: #fff; border: 1px solid var(--line); border-bottom-left-radius: 6px; }
 .bubble--me { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
 .bubble__who { font-size: 12px; font-weight: 700; color: var(--accent); }
-.chat__compose { border-top: 1px solid var(--line); padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; background: var(--paper); }
+.chat__compose { border-top: 1px solid var(--line); padding: 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: end; background: var(--paper); }
 .chat__compose textarea { min-height: 46px; max-height: 160px; resize: none; border-radius: 22px; padding: 11px 16px; }
 .chat__compose .btn { min-height: 46px; }
 .chat__hint { grid-column: 1 / -1; font-size: 12px; color: var(--muted); padding-left: 6px; }
@@ -704,3 +704,29 @@ dialog.modal--sheet .tiles { grid-template-columns: repeat(auto-fill, minmax(120
   dialog.modal--sheet .form__actions .btn { flex: 1; }
 }
 @keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } }
+
+/* Fotos na conversa */
+.chat__attach { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--copper); display: grid; place-items: center; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.chat__attach:hover, .chat__attach:focus-visible { background: #f6ece3; color: var(--accent); border-color: var(--copper-light); }
+.chat__attach svg { width: 22px; height: 22px; }
+.chat { position: relative; }
+.chat.is-dragging::after { content: "Solte as fotos para enviar"; position: absolute; inset: 8px; display: grid; place-items: center; border: 2px dashed var(--copper); border-radius: var(--radius); background: rgba(250, 246, 241, 0.92); color: var(--accent); font-weight: 700; font-size: 18px; pointer-events: none; z-index: 2; }
+.bubble--photo { padding: 4px 4px 6px; width: min(328px, 78%); }
+.bubble--photo > span, .bubble--photo > time { padding: 0 8px; }
+.bubble--photo .bubble__who { padding-top: 4px; }
+.bubble__photo { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; overflow: hidden; }
+.bubble__photo img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: cover; background: rgba(180, 112, 62, 0.12); }
+.photo-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.photo-preview figure { margin: 0; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--sand); }
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-preview--one { grid-template-columns: 1fr; }
+.photo-preview--one figure { aspect-ratio: auto; max-height: 52vh; display: grid; place-items: center; }
+.photo-preview--one img { height: auto; max-height: 52vh; object-fit: contain; }
+@media (max-width: 600px) {
+  .chat__compose { gap: 8px; padding: 10px; }
+  .chat__attach { width: 42px; height: 42px; }
+  .chat__compose .btn[type=submit] { width: 46px; padding: 0; justify-content: center; }
+  .chat__compose .btn[type=submit] span { display: none; }
+  .photo-preview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .photo-preview--one { grid-template-columns: 1fr; }
+}

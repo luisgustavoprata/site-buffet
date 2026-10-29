@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app import errors
 from app.config import Settings
-from app.database import Base, make_engine
+from app.database import Base, add_missing_columns, make_engine
 from app.deps import get_today
 from app.ratelimit import LoginLimiter
 from app.routers import auth, portfolio, quotes, site
@@ -60,6 +60,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         Base.metadata.create_all(engine)
+        add_missing_columns(engine)
         with session_factory.begin() as db:
             ensure_owner(db, settings)
             if settings.seed_demo:

@@ -1,6 +1,6 @@
 """Conexão com o banco: SQLite no desenvolvimento, PostgreSQL em produção."""
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, inspect, text
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import StaticPool
 
@@ -26,3 +26,23 @@ def make_engine(url: str) -> Engine:
         cursor.close()
 
     return engine
+
+
+# Colunas criadas depois da primeira versão. `create_all` só cria tabelas novas, então quem já
+# tem o banco (ex.: o site no ar) ganha estas colunas na hora de iniciar.
+NEW_COLUMNS = [
+    ("images", "access_key", "VARCHAR(64)"),
+    ("messages", "image_id", "INTEGER REFERENCES images(id) ON DELETE SET NULL"),
+]
+
+
+def add_missing_columns(engine: Engine) -> None:
+    inspector = inspect(engine)
+    tables = set(inspector.get_table_names())
+    with engine.begin() as connection:
+        for table, column, ddl in NEW_COLUMNS:
+            if table not in tables:
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table)}
+            if column not in existing:
+                connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))

@@ -5,11 +5,14 @@ chegam por consulta periódica (`GET /quotes/{id}/messages?after=`), sem WebSock
 em qualquer hospedagem, inclusive no plano gratuito do Render.
 """
 
-from fastapi import APIRouter, HTTPException, Query, status
+import secrets
+from typing import Annotated
+
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import and_, func, or_, select, true
 from sqlalchemy.orm import Session
 
-from app.deps import CurrentUser, OwnerUser, SessionDep, TodayDep
+from app.deps import CurrentUser, OwnerUser, SessionDep, SettingsDep, TodayDep
 from app.models import Message, Quote, QuoteStatus, Role, User, utcnow
 from app.schemas import (
     ClientSummary,
@@ -23,6 +26,7 @@ from app.schemas import (
     SortQuotes,
     Unread,
 )
+from app.services import store_upload
 
 router = APIRouter(tags=["Orçamentos"])
 
@@ -64,9 +68,10 @@ def _summaries(db: Session, quotes: list[Quote], user: User) -> list[QuoteOut]:
         newest = (
             select(func.max(Message.id)).where(Message.quote_id.in_(ids)).group_by(Message.quote_id)
         )
-        last = dict(
-            db.execute(select(Message.quote_id, Message.body).where(Message.id.in_(newest))).all()
+        rows = db.execute(
+            select(Message.quote_id, Message.body, Message.image_id).where(Message.id.in_(newest))
         )
+        last = {qid: body or ("📷 Foto" if image_id else "") for qid, body, image_id in rows}
     out = []
     for quote in quotes:
         item = QuoteOut.model_validate(quote)
@@ -193,7 +198,36 @@ def _mark_read(quote: Quote, user: User, last_id: int | None = None) -> None:
 )
 def send_message(quote_id: int, data: MessageCreate, db: SessionDep, user: CurrentUser) -> Message:
     quote = _get_quote(db, quote_id, user)
-    message = Message(quote=quote, sender_id=user.id, from_owner=user.is_owner, body=data.body)
+    return _post(db, quote, user, body=data.body)
+
+
+@router.post(
+    "/quotes/{quote_id}/photos",
+    response_model=MessageOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Envia uma foto na conversa (com legenda opcional)",
+    description="A foto só abre para quem participa da conversa: o endereço leva uma chave.",
+    responses={
+        **NOT_FOUND,
+        413: {"model": ErrorResponse},
+        422: {"model": ErrorResponse},
+    },
+)
+async def send_photo(
+    quote_id: int,
+    file: Annotated[UploadFile, File(description="A foto (JPG, PNG ou WebP).")],
+    db: SessionDep,
+    user: CurrentUser,
+    settings: SettingsDep,
+    caption: Annotated[str, Form(max_length=4000, description="Legenda.")] = "",
+) -> Message:
+    quote = _get_quote(db, quote_id, user)
+    image = await store_upload(db, file, settings, access_key=secrets.token_urlsafe(24))
+    return _post(db, quote, user, body=caption.strip(), image=image)
+
+
+def _post(db: Session, quote: Quote, user: User, **fields) -> Message:
+    message = Message(quote=quote, sender_id=user.id, from_owner=user.is_owner, **fields)
     db.add(message)
     quote.last_message_at = utcnow()
     if user.is_owner and quote.status == QuoteStatus.NEW:

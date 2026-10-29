@@ -262,6 +262,9 @@ class MessageOut(Output):
     id: int
     from_owner: bool
     body: str
+    image_url: str | None = None
+    image_width: int | None = None
+    image_height: int | None = None
     created_at: UtcDatetime
 
 

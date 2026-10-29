@@ -33,7 +33,10 @@ servida pela própria API.
   sem conta cria a conta e volta direto para o pedido.
 - **Pedido de orçamento em três etapas** (o evento, detalhes, revisar): tipo de evento em
   cartões com ícone, data, convidados com botões de +/−, local, faixa de investimento e
-  detalhes. O pedido abre uma **conversa** com o buffet.
+  detalhes. O pedido abre uma **conversa** com o buffet, onde os dois lados trocam mensagens
+  e **fotos** (botão de foto, colar ou arrastar; prévia com legenda antes de enviar).
+- Na revisão do pedido, cada item tem *alterar*: abre uma aba só com aquele campo, sem
+  voltar ao início.
 - **Minha conta**: lista de pedidos com situação e aviso de mensagens novas.
 
 **Para a dona do buffet (painel)**
@@ -60,9 +63,9 @@ servida pela própria API.
 | API REST | FastAPI com validação Pydantic, erros em português campo a campo, OpenAPI em `/docs` |
 | Banco | SQLAlchemy 2 (ORM tipado), SQLite no desenvolvimento e PostgreSQL em produção |
 | Fotos | Guardadas no banco (sobrevivem a novos deploys). Toda foto é reaberta pelo Pillow: só entra imagem de verdade, o tamanho cai para no máximo 1920 px e os dados de GPS/EXIF do celular são removidos. Cache de um ano no navegador |
-| Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida |
+| Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida. Fotos da conversa são particulares: o endereço leva uma chave aleatória que só os participantes recebem |
 | Segurança | Senhas com PBKDF2 + sal, JWT, limite de tentativas de login, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador, cabeçalhos CSP / nosniff / frame-ancestors |
-| Qualidade | 50 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Qualidade | 52 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
 
 ```

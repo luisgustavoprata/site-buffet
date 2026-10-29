@@ -68,7 +68,7 @@ function icon(name) {
   return svg;
 }
 
-const media = (id) => (id ? `/media/${id}` : null);
+const media = (id) => (typeof id === "string" ? id : id ? `/media/${id}` : null); // id ou endereço pronto
 
 function img(id, alt = "", attrs = {}) {
   if (!id) return null;
@@ -330,6 +330,12 @@ const api = {
     const data = new FormData();
     data.append("file", file);
     return this.request("POST", "/admin/images", { body: data });
+  },
+  sendPhoto(quoteId, file, caption = "") {
+    const data = new FormData();
+    data.append("file", file);
+    if (caption) data.append("caption", caption);
+    return this.request("POST", `/quotes/${quoteId}/photos`, { body: data });
   },
 };
 
@@ -1261,21 +1267,117 @@ async function chatView(quoteId, { back, onStatus } = {}) {
       body.append(h("p", { class: "chat__day" }, dayLabel(date)));
     }
     const mine = m.from_owner === owner;
-    body.append(h("div", { class: `bubble ${mine ? "bubble--me" : "bubble--them"}` },
+    let photo = null;
+    if (m.image_url) {
+      const index = photos.push(m.image_url) - 1;
+      photo = h("button", { class: "bubble__photo", type: "button", "aria-label": "Ampliar foto", onclick: () => lightbox(photos, index, "Foto da conversa") },
+        h("img", { src: m.image_url, alt: m.body || "Foto enviada na conversa", width: m.image_width, height: m.image_height, loading: "lazy" }));
+      photo.querySelector("img").addEventListener("load", () => {
+        if (stick) body.scrollTop = body.scrollHeight; // a foto carregou depois: continua no fim
+      });
+    }
+    body.append(h("div", { class: `bubble ${mine ? "bubble--me" : "bubble--them"}${photo ? " bubble--photo" : ""}` },
       !mine && h("span", { class: "bubble__who" }, m.from_owner ? state.site.owner_name || state.site.business_name : quote.client.name),
-      h("span", null, m.body),
+      photo,
+      m.body && h("span", null, m.body),
       h("time", { datetime: m.created_at }, TIME.format(date))));
   };
+  const photos = [];
+  let stick = true; // a conversa está no fim (as fotos que chegarem mantêm o fim à vista)
+  body.addEventListener("scroll", () => {
+    stick = body.scrollHeight - body.scrollTop - body.clientHeight < 120;
+  });
 
   body.append(h("p", { class: "chat__notice" }, owner
     ? `Pedido enviado em ${DATE_SHORT.format(new Date(quote.created_at))}. As mensagens que você escrever aqui aparecem na conta de ${quote.client.name.split(" ")[0]}.`
-    : `Pedido enviado! ${ownerFirst} responde por aqui. Você também pode mandar mais detalhes, fotos de referência por link ou dúvidas.`));
+    : `Pedido enviado! ${ownerFirst} responde por aqui. Você também pode mandar mais detalhes, fotos de referência ou dúvidas.`));
   quote.messages.forEach(addMessage);
 
   const text = h("textarea", { class: "input", name: "body", rows: "1", placeholder: "Escreva sua mensagem…", "aria-label": "Mensagem", maxlength: "4000" });
   const sendBtn = h("button", { class: "btn btn--primary", type: "submit", "aria-label": "Enviar" }, icon("send"), h("span", null, "Enviar"));
-  const compose = h("form", { class: "chat__compose" }, text, sendBtn,
-    h("p", { class: "chat__hint" }, "Enter envia · Shift + Enter quebra a linha"));
+  const picker = h("input", { type: "file", accept: "image/jpeg,image/png,image/webp", multiple: true, hidden: true });
+  const attachBtn = h("button", { class: "chat__attach", type: "button", "aria-label": "Enviar fotos", title: "Enviar fotos", onclick: () => picker.click() }, icon("photo"));
+  const compose = h("form", { class: "chat__compose" }, attachBtn, picker, text, sendBtn,
+    h("p", { class: "chat__hint" }, "Enter envia · Shift + Enter quebra a linha · Cole ou arraste fotos aqui"));
+
+  const afterSend = (m) => {
+    addMessage(m);
+    body.scrollTop = body.scrollHeight;
+    if (owner && quote.status === "novo") {
+      quote.status = "em_conversa";
+      statusSlot.replaceChildren(statusControl());
+      onStatus?.();
+    }
+  };
+
+  // Fotos: escolher, colar ou arrastar abre uma prévia com legenda antes de enviar.
+  const MAX_PHOTOS = 10;
+  const sendPhotos = (fileList) => {
+    let files = [...fileList].filter((f) => /^image\/(jpeg|png|webp)$/.test(f.type));
+    if (!files.length) {
+      toast("Envie fotos em JPG, PNG ou WebP.", "error");
+      return;
+    }
+    if (files.length > MAX_PHOTOS) {
+      toast(`Até ${MAX_PHOTOS} fotos por vez.`, "error");
+      files = files.slice(0, MAX_PHOTOS);
+    }
+    openModal(files.length > 1 ? `Enviar ${files.length} fotos` : "Enviar foto", (close) => {
+      const grid = h("div", { class: `photo-preview${files.length === 1 ? " photo-preview--one" : ""}` },
+        files.map((file) => {
+          const img = h("img", { alt: file.name });
+          const reader = new FileReader();
+          reader.onload = () => { img.src = reader.result; };
+          reader.readAsDataURL(file);
+          return h("figure", null, img);
+        }));
+      const caption = h("textarea", { class: "input", rows: "2", maxlength: "4000", placeholder: "Legenda (opcional)", "aria-label": "Legenda" });
+      const send = h("button", { class: "btn btn--primary", type: "submit" }, icon("send"), h("span", null, "Enviar"));
+      const form = h("form", { class: "form" }, grid,
+        h("div", { class: "field" }, caption),
+        h("div", { class: "form__actions" },
+          h("button", { class: "btn btn--ghost", type: "button", onclick: close }, "Cancelar"), send));
+      caption.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+          e.preventDefault();
+          form.requestSubmit();
+        }
+      });
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        send.disabled = true;
+        const label = send.querySelector("span");
+        let sent = 0;
+        try {
+          for (const file of files) {
+            label.textContent = files.length > 1 ? `Enviando ${sent + 1} de ${files.length}…` : "Enviando…";
+            // A legenda vai junto com a primeira foto.
+            afterSend(await api.sendPhoto(quote.id, file, sent === 0 ? caption.value.trim() : ""));
+            sent += 1;
+          }
+          close();
+        } catch (err) {
+          if (err.status !== 401) toast(sent ? `${sent} de ${files.length} enviadas. ${err.message}` : err.message, "error");
+          files = files.slice(sent);
+          [...grid.children].slice(0, sent).forEach((f) => f.remove());
+          label.textContent = "Tentar de novo";
+          send.disabled = false;
+        }
+      });
+      return form;
+    }, { className: "modal--sheet" });
+  };
+  picker.addEventListener("change", () => {
+    if (picker.files.length) sendPhotos(picker.files);
+    picker.value = "";
+  });
+  text.addEventListener("paste", (e) => {
+    const images = [...(e.clipboardData?.files || [])].filter((f) => f.type.startsWith("image/"));
+    if (images.length) {
+      e.preventDefault();
+      sendPhotos(images);
+    }
+  });
   const grow = () => {
     text.style.height = "auto";
     text.style.height = `${Math.min(text.scrollHeight + 2, 160)}px`;
@@ -1296,13 +1398,7 @@ async function chatView(quoteId, { back, onStatus } = {}) {
       const m = await api.post(`/quotes/${quote.id}/messages`, { body: value });
       text.value = "";
       grow();
-      addMessage(m);
-      body.scrollTop = body.scrollHeight;
-      if (owner && quote.status === "novo") {
-        quote.status = "em_conversa";
-        statusSlot.replaceChildren(statusControl());
-        onStatus?.();
-      }
+      afterSend(m);
     } catch (err) {
       if (err.status !== 401) toast(err.message, "error");
     } finally {
@@ -1348,6 +1444,19 @@ async function chatView(quoteId, { back, onStatus } = {}) {
         quote.details && h("p", { style: "font-size:14px;color:var(--ink-soft);white-space:pre-wrap" }, quote.details))));
 
   const chat = h("section", { class: "chat", "aria-label": "Conversa do pedido" }, head, body, compose);
+  chat.addEventListener("dragover", (e) => {
+    if (![...e.dataTransfer.types].includes("Files")) return;
+    e.preventDefault();
+    chat.classList.add("is-dragging");
+  });
+  chat.addEventListener("dragleave", (e) => {
+    if (!chat.contains(e.relatedTarget)) chat.classList.remove("is-dragging");
+  });
+  chat.addEventListener("drop", (e) => {
+    e.preventDefault();
+    chat.classList.remove("is-dragging");
+    if (e.dataTransfer.files.length) sendPhotos(e.dataTransfer.files);
+  });
 
   // Mensagens novas a cada 4 segundos, enquanto esta tela estiver aberta e visível.
   const poll = setInterval(async () => {

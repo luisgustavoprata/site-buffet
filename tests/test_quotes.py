@@ -1,3 +1,6 @@
+from tests.conftest import png_bytes
+
+
 def test_client_requests_a_quote(api, ana):
     quote = api.quote(ana, budget="R$ 10 a 20 mil", details="Jantar para 120 pessoas")
     assert quote["status"] == "novo"
@@ -157,3 +160,53 @@ def test_client_list_for_the_owner(api, client, ana, owner):
     found = client.get("/admin/clients", params={"q": "bruno"}, headers=owner).json()
     assert [c["name"] for c in found] == ["Bruno Lima"]
     assert client.get("/admin/clients", headers=ana).status_code == 403
+
+
+def test_photos_in_the_conversation(api, client, ana, owner):
+    quote = api.quote(ana)
+    url = f"/quotes/{quote['id']}/photos"
+    sent = client.post(
+        url,
+        files={"file": ("ref.png", png_bytes(), "image/png")},
+        data={"caption": " Mesa de referência "},
+        headers=ana,
+    )
+    assert sent.status_code == 201, sent.json()
+    photo = sent.json()
+    assert photo["body"] == "Mesa de referência"
+    assert (photo["image_width"], photo["image_height"]) == (64, 48)
+
+    # A foto só abre com a chave do endereço, que só os participantes recebem.
+    assert client.get(photo["image_url"]).status_code == 200
+    assert client.get(photo["image_url"]).headers["cache-control"].startswith("private")
+    image_id = photo["image_url"].split("?")[0].rsplit("/", 1)[1]
+    assert client.get(f"/media/{image_id}").status_code == 404
+    assert client.get(f"/media/{image_id}?k=errada").status_code == 404
+
+    seen = client.get(f"/quotes/{quote['id']}", headers=owner).json()["messages"]
+    assert seen[0]["image_url"] == photo["image_url"]
+
+    reply = client.post(url, files={"file": ("p.png", png_bytes(), "image/png")}, headers=owner)
+    assert reply.status_code == 201
+    assert reply.json()["from_owner"] is True and reply.json()["body"] == ""
+    assert client.get("/quotes", headers=ana).json()[0]["last_message"] == "📷 Foto"
+    assert client.get("/quotes/unread", headers=ana).json()["unread"] == 1
+
+
+def test_conversation_photo_rules(api, client, ana, owner):
+    quote = api.quote(ana)
+    url = f"/quotes/{quote['id']}/photos"
+    other = api.headers(email="bia@exemplo.com", name="Bia")
+    photo = {"file": ("p.png", png_bytes(), "image/png")}
+    assert client.post(url, files=photo, headers=other).status_code == 404
+    assert client.post(url, files=photo).status_code == 401
+    fake = {"file": ("p.png", b"nao e imagem", "image/png")}
+    assert client.post(url, files=fake, headers=ana).status_code == 422
+    big = {"file": ("p.png", b"0" * (1024 * 1024 + 10), "image/png")}
+    assert client.post(url, files=big, headers=ana).status_code == 413
+
+    # A foto da conversa não pode ser usada como foto pública do site.
+    sent = client.post(url, files=photo, headers=ana).json()
+    image_id = int(sent["image_url"].split("?")[0].rsplit("/", 1)[1])
+    response = client.patch("/admin/site", json={"hero_image_id": image_id}, headers=owner)
+    assert response.status_code in (404, 422)
