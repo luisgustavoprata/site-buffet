@@ -49,6 +49,7 @@ def test_openapi_lists_every_route(client):
         "/quotes/{quote_id}/messages",
         "/admin/quotes/{quote_id}",
         "/admin/clients",
+        "/admin/dashboard",
     } <= paths
 
 

@@ -273,3 +273,18 @@ class AppSecret(Base):
 
     name: Mapped[str] = mapped_column(String(60), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
+
+
+class Dashboard(Base):
+    """Os números da planilha do buffet (estoque, DRE, precificação), enviados pela dona no
+    painel. A planilha é lida no navegador; aqui fica só o resumo. Existe uma linha só (id = 1).
+    """
+
+    __tablename__ = "dashboard"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    file_name: Mapped[str] = mapped_column(String(200), default="")
+    data: Mapped[str] = mapped_column(Text)  # JSON
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )
