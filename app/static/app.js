@@ -7,6 +7,7 @@
  * 5. Entrar, cadastro e pedido de orçamento
  * 6. Área do cliente e conversa
  * 7. Painel da administração
+ *    (a aba Resultados, que lê a planilha do buffet, fica em resultados.js)
  */
 "use strict";
 
@@ -685,7 +686,7 @@ const ROUTES = [
   [/^\/conta\/pedidos\/(\d+)$/, (m) => renderAccount(Number(m[1]))],
   [/^\/painel$/, () => renderAdmin("pedidos")],
   [/^\/painel\/pedidos\/(\d+)$/, (m) => renderAdmin("pedidos", Number(m[1]))],
-  [/^\/painel\/(portfolio|site|clientes|notificacoes)$/, (m) => renderAdmin(m[1])],
+  [/^\/painel\/(resultados|portfolio|site|clientes|notificacoes)$/, (m) => renderAdmin(m[1])],
 ];
 
 let renderSeq = 0;
@@ -1834,6 +1835,7 @@ function clientCard(c) {
 
 const ADMIN_TABS = [
   ["pedidos", "Orçamentos", "#/painel"],
+  ["resultados", "Resultados", "#/painel/resultados"],
   ["portfolio", "Portfólio", "#/painel/portfolio"],
   ["site", "Textos e fotos do site", "#/painel/site"],
   ["clientes", "Clientes", "#/painel/clientes"],
@@ -1854,7 +1856,7 @@ async function renderAdmin(tab, openId) {
       h("a", { href: "#/" }, "Ver o site"),
       h("a", { href: "#", onclick: (e) => { e.preventDefault(); session.logout(); } }, "Sair")),
     main));
-  const views = { pedidos: adminQuotes, portfolio: adminPortfolio, site: adminSite, clientes: adminClients, notificacoes: adminPush };
+  const views = { pedidos: adminQuotes, resultados: adminResults, portfolio: adminPortfolio, site: adminSite, clientes: adminClients, notificacoes: adminPush };
   await views[tab](main, openId);
 }
 

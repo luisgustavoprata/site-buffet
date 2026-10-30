@@ -5,6 +5,7 @@
   conversa) para quem quer conhecer o projeto. Só roda com o banco vazio.
 """
 
+import json
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from app.config import Settings
 from app.images import process_upload
 from app.models import (
     BioPhoto,
+    Dashboard,
     Event,
     EventComment,
     EventLike,
@@ -131,6 +133,7 @@ def seed_demo(db: Session, today: date, iterations: int) -> None:
     if db.scalar(select(User.id).where(User.email == DEMO_OWNER[0])) is not None:
         _refresh_old_demo(db)
         _demo_reactions(db)
+        _demo_dashboard(db)
         return  # a demonstração já existe: reiniciar o servidor não duplica nada
     if not _site_is_blank(db):
         return  # o site já tem conteúdo de verdade: a demonstração não apaga nada
@@ -283,6 +286,7 @@ def seed_demo(db: Session, today: date, iterations: int) -> None:
     quote.client_read_id = first  # as duas respostas da Helena aparecem como novas
     quote.owner_read_id = first + 2
     _demo_reactions(db)
+    _demo_dashboard(db)
 
 
 def _demo_reactions(db: Session) -> None:
@@ -308,5 +312,19 @@ def _demo_reactions(db: Session) -> None:
             event_id=wedding.id,
             user_id=owner.id,
             body="Obrigada, Marcos! Montamos sim, a mesa de doces é toda feita por nós.",
+        )
+    )
+
+
+def _demo_dashboard(db: Session) -> None:
+    """Números de exemplo na aba Resultados, tirados da planilha de demonstração."""
+    if db.get(Dashboard, 1) is not None:
+        return
+    data = json.loads((DEMO_DIR / "resultados.json").read_text(encoding="utf-8"))
+    db.add(
+        Dashboard(
+            id=1,
+            file_name="Planilha_Buffet_DRE_Estoque.ods (exemplo)",
+            data=json.dumps(data, ensure_ascii=False, separators=(",", ":")),
         )
     )

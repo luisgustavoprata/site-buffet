@@ -49,6 +49,7 @@ def test_openapi_lists_every_route(client):
         "/quotes/{quote_id}/messages",
         "/admin/quotes/{quote_id}",
         "/admin/clients",
+        "/admin/dashboard",
     } <= paths
 
 
@@ -114,3 +115,15 @@ def test_production_requires_a_secret_key(monkeypatch):
         assert "SECRET_KEY" in str(exc)
     else:
         raise AssertionError("deveria exigir SECRET_KEY em produção")
+
+
+def test_demo_has_example_results(settings):
+    demo = demo_settings(settings, fresh=True)
+    with TestClient(create_app(demo)) as client:
+        login = {"username": DEMO_OWNER[0], "password": DEMO_OWNER[1]}
+        token = client.post("/auth/token", data=login).json()["access_token"]
+        response = client.get("/admin/dashboard", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 200, response.json()
+        data = response.json()["data"]
+        assert data["dre"]["receitaBruta"]["t"] > 0
+        assert data["estoque"]

@@ -329,3 +329,14 @@ class ClientSummary(ClientOut):
 
 
 SortQuotes = Literal["recentes", "evento"]
+
+
+class DashboardIn(Input):
+    file_name: str = Field(default="", max_length=200)
+    data: dict
+
+
+class DashboardOut(Output):
+    file_name: str
+    updated_at: UtcDatetime
+    data: dict

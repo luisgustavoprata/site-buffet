@@ -22,7 +22,7 @@ from app.deps import get_today
 from app.models import utcnow
 from app.notifications import run_due
 from app.ratelimit import LoginLimiter
-from app.routers import auth, portfolio, push, quotes, site
+from app.routers import auth, dashboard, portfolio, push, quotes, site
 from app.security import hash_password
 from app.seed import DEMO_CLIENT, DEMO_OWNER, ensure_owner, seed_demo
 
@@ -111,6 +111,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             {"name": "Portfólio", "description": "Eventos realizados, com fotos."},
             {"name": "Orçamentos", "description": "Pedidos de orçamento e conversa."},
             {"name": "Notificações", "description": "Avisos no celular e no computador."},
+            {"name": "Resultados", "description": "Números da planilha do buffet (painel)."},
             {"name": "Sistema"},
         ],
     )
@@ -133,7 +134,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return response
 
     errors.register(app)
-    for router in (auth.router, site.router, portfolio.router, quotes.router, push.router):
+    for router in (
+        auth.router,
+        site.router,
+        portfolio.router,
+        quotes.router,
+        push.router,
+        dashboard.router,
+    ):
         app.include_router(router)
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

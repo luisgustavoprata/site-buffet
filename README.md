@@ -55,6 +55,14 @@ servida pela própria API.
   (arrastando), reordenar e escolher a capa.
 - **Textos e fotos do site**: capa, biografia, história, contato e todas as fotos.
 - **Clientes**: todos os cadastrados, com contato e quantidade de pedidos.
+- **Resultados**: a central de números do buffet, lida da planilha de estoque, DRE e
+  precificação (.ods ou .xlsx). Mostra receita, lucro e margem do ano, eventos e convidados,
+  ticket por convidado, valor em estoque, preço sugerido por pessoa e os itens para repor, com
+  gráficos de receita x custos por mês, despesas por grupo, receita x insumos por evento,
+  composição do preço por pessoa e estoque por tipo.
+  No computador (Chrome ou Edge), a dona conecta o arquivo uma vez: a cada Ctrl+S no
+  LibreOffice o painel relê a planilha em até 2 segundos e envia o resumo ao site. No celular,
+  o painel mostra os últimos números enviados.
 - **Notificações**: quantos clientes ativaram, os horários sorteados de hoje e todas as
   mensagens que podem ser enviadas.
 
@@ -75,8 +83,9 @@ servida pela própria API.
 | Fotos | Guardadas no banco (sobrevivem a novos deploys). Toda foto é reaberta pelo Pillow: só entra imagem de verdade, o tamanho cai para no máximo 1920 px e os dados de GPS/EXIF do celular são removidos. Cache de um ano no navegador |
 | Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida. Fotos da conversa são particulares: o endereço leva uma chave aleatória que só os participantes recebem |
 | Segurança | Senhas com PBKDF2 + sal, JWT, limite de tentativas de login, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador, cabeçalhos CSP / nosniff / frame-ancestors |
-| Qualidade | 93 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Qualidade | 100 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
 | Notificações | Web Push implementado no próprio projeto (RFC 8291 para cifrar, RFC 8292/VAPID para assinar), testado contra o exemplo oficial da RFC. Funciona no Chrome, Edge, Firefox e Safari (no iPhone, com o site adicionado à Tela de Início). A chave do site é gerada e guardada no banco. Só aceita endereços dos serviços de push conhecidos (Google, Mozilla, Apple, Microsoft) |
+| Resultados | A planilha é lida no navegador (SheetJS) e desenhada com Chart.js, os dois carregados só nessa aba. O arquivo nunca sai do computador: o site guarda só o resumo em JSON (`PUT /admin/dashboard`, até 2 MB, só a administração). Atualização ao vivo pela File System Access API, conferindo a data de alteração do arquivo a cada 2 s |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
 
 ```
@@ -85,7 +94,7 @@ app/
 ├── models.py         # tabelas: usuários, conteúdo, fotos, eventos, pedidos, mensagens
 ├── schemas.py        # validação de entrada e formato de saída
 ├── images.py         # tratamento das fotos enviadas (Pillow)
-├── routers/          # auth, site, portfolio, quotes
+├── routers/          # auth, site, portfolio, quotes, push, dashboard
 ├── seed.py           # conta da administração e site de demonstração
 └── static/           # interface (HTML, CSS e JavaScript puro)
 ```
