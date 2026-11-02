@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.deps import CurrentUser, SessionDep, SettingsDep
+from app.deps import CurrentUser, SessionDep, SettingsDep, client_ip
+from app.ipguard import parse_ip
 from app.models import Role, User
 from app.schemas import ErrorResponse, Token, UserCreate, UserOut, UserUpdate
 from app.security import create_access_token, hash_password, verify_password
@@ -59,7 +60,8 @@ def login(
 ) -> Token:
     email = form.username.strip().lower()
     limiter = request.app.state.login_limiter
-    key = f"{request.client.host if request.client else '-'}|{email}"
+    ip = client_ip(request)
+    key = f"{ip or '-'}|{email}"
     wait = limiter.retry_after(key)
     if wait is not None:
         raise HTTPException(
@@ -74,6 +76,9 @@ def login(
     stored = user.password_hash if user else request.app.state.dummy_hash
     if not verify_password(form.password, stored) or user is None:
         limiter.register_failure(key)
+        guard = getattr(request.app.state, "ipguard", None)
+        if guard:
+            guard.strike(parse_ip(ip))  # senhas erradas de VPN/fora do Brasil contam como suspeita
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
             "E-mail ou senha incorretos.",

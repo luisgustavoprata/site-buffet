@@ -33,6 +33,8 @@ def settings(tmp_path) -> Settings:
         owner_name="Helena",
         max_upload_mb=1,
         push_scheduler=False,
+        ipguard_enabled=False,
+        ipguard_refresh=False,
     )
 
 

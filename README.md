@@ -82,8 +82,10 @@ servida pela própria API.
 | Banco | SQLAlchemy 2 (ORM tipado), SQLite no desenvolvimento e PostgreSQL em produção |
 | Fotos | Guardadas no banco (sobrevivem a novos deploys). Toda foto é reaberta pelo Pillow: só entra imagem de verdade, o tamanho cai para no máximo 1920 px e os dados de GPS/EXIF do celular são removidos. Cache de um ano no navegador |
 | Conversa | Mensagens novas por consulta a cada 4 s (`?after=`), sem WebSocket: funciona em qualquer hospedagem. Contagem de não lidas por id da última mensagem lida. Fotos da conversa são particulares: o endereço leva uma chave aleatória que só os participantes recebem |
+| Barreira por IP | IPs de **VPN e datacenter** (lista X4BNet, ~55 mil faixas, atualizada todo dia) passam por uma **verificação de segurança** antes de abrir o site. **Fora do Brasil** (blocos oficiais da LACNIC) o site abre com limite baixo de acessos, e entrar, cadastrar, pedir orçamento, comentar ou mandar mensagens pede a verificação. Quem abusa depois de liberado (excesso de acessos, senhas erradas, respostas falsas) fica **24 h preso no desafio**, que nunca é aprovado. IPs do Brasil nunca são marcados, só desacelerados (429) numa enxurrada. Robôs do Google/Bing confirmados por DNS e prévias de link (WhatsApp etc.) continuam funcionando |
+| IP real | Lido do cabeçalho que a Cloudflare do Render preenche (`CF-Connecting-IP`); o `X-Forwarded-For` pode ser forjado pelo visitante e não é usado |
 | Segurança | Senhas com PBKDF2 + sal, JWT, limite de tentativas de login, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador, cabeçalhos CSP / nosniff / frame-ancestors |
-| Qualidade | 100 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
+| Qualidade | 111 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
 | Notificações | Web Push implementado no próprio projeto (RFC 8291 para cifrar, RFC 8292/VAPID para assinar), testado contra o exemplo oficial da RFC. Funciona no Chrome, Edge, Firefox e Safari (no iPhone, com o site adicionado à Tela de Início). A chave do site é gerada e guardada no banco. Só aceita endereços dos serviços de push conhecidos (Google, Mozilla, Apple, Microsoft) |
 | Resultados | A planilha é lida no navegador (SheetJS) e desenhada com Chart.js, os dois carregados só nessa aba. O arquivo nunca sai do computador: o site guarda só o resumo em JSON (`PUT /admin/dashboard`, até 2 MB, só a administração). Atualização ao vivo pela File System Access API, conferindo a data de alteração do arquivo a cada 2 s |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
@@ -146,6 +148,9 @@ exemplo num SQLite interno, que volta ao exemplo sempre que o servidor reinicia.
 | `PUSH_PER_DAY` | Notificações por dia para os clientes (padrão 2; `0` desliga) |
 | `PUSH_START_HOUR`, `PUSH_END_HOUR` | Janela de envio, horário de Brasília (padrão 7 e 19) |
 | `PUSH_SUBJECT` | Contato do site para os serviços de push (`mailto:...`) |
+| `IPGUARD_ENABLED` | `false` desliga a barreira por IP (padrão: ligada) |
+| `IPGUARD_COUNTRY_SOURCES`, `IPGUARD_VPN_SOURCES` | Outras fontes para as listas (URLs ou arquivos, separados por vírgula) |
+| `CLIENT_IP_HEADERS` | De onde ler o IP real (padrão `cf-connecting-ip,true-client-ip`). Fora do Render, ajuste para o seu proxy |
 | `VAPID_PRIVATE_KEY` | Opcional: chave das notificações. Sem ela, o site gera uma e guarda no banco |
 
 **Notificações e o plano gratuito do Render:** o servidor gratuito "dorme" depois de 15 minutos

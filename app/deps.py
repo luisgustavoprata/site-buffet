@@ -39,6 +39,15 @@ def get_today(settings: Annotated[Settings, Depends(get_settings)]) -> date:
     return datetime.now(ZoneInfo(settings.timezone)).date()
 
 
+def client_ip(request: Request) -> str:
+    """O IP de quem está acessando (veja `client_ip_headers` na configuração)."""
+    for header in request.app.state.settings.client_ip_headers:
+        value = request.headers.get(header)
+        if value:
+            return value.split(",")[0].strip()
+    return request.client.host if request.client else ""
+
+
 SessionDep = Annotated[Session, Depends(get_db)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 TodayDep = Annotated[date, Depends(get_today)]

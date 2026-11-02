@@ -306,6 +306,11 @@ const api = {
     if (response.status === 204) return null;
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
+      if (response.status === 403 && data.challenge) {
+        // Barreira de segurança: confirma na página de verificação e volta para onde estava.
+        location.assign(`/_seguranca?volta=${encodeURIComponent(`/${location.hash}`)}`);
+        throw new ApiError(403, "Verificação de segurança necessária.");
+      }
       if (response.status === 401 && token && path !== "/auth/token") {
         session.clear();
         toast("Sua sessão expirou. Entre novamente.", "error");

@@ -44,6 +44,14 @@ class Settings:
     push_scheduler: bool = True  # verificação automática em segundo plano
     push_subject: str = "mailto:contato@brunoisegastronomia.com.br"
     vapid_private_key: str = ""  # vazio: o site gera uma e guarda no banco
+    # Barreira por IP (VPN, fora do Brasil, excesso de pedidos). Veja app/ipguard.py.
+    ipguard_enabled: bool = True
+    ipguard_refresh: bool = True  # baixa as listas atualizadas ao iniciar e todo dia
+    ipguard_country_sources: str | None = None  # URLs ou arquivos, separados por vírgula
+    ipguard_vpn_sources: str | None = None
+    # Cabeçalhos com o IP real do visitante. No Render, quem preenche é a Cloudflare na
+    # entrada (o visitante não consegue falsificar); o X-Forwarded-For pode ser forjado.
+    client_ip_headers: tuple[str, ...] = ("cf-connecting-ip", "true-client-ip")
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -68,6 +76,17 @@ class Settings:
             push_scheduler=_bool(env.get("PUSH_SCHEDULER"), True),
             push_subject=env.get("PUSH_SUBJECT") or cls.push_subject,
             vapid_private_key=env.get("VAPID_PRIVATE_KEY") or "",
+            ipguard_enabled=_bool(env.get("IPGUARD_ENABLED"), True),
+            ipguard_refresh=_bool(env.get("IPGUARD_REFRESH"), True),
+            ipguard_country_sources=env.get("IPGUARD_COUNTRY_SOURCES"),
+            ipguard_vpn_sources=env.get("IPGUARD_VPN_SOURCES"),
+            client_ip_headers=tuple(
+                h.strip().lower()
+                for h in (env.get("CLIENT_IP_HEADERS") or "cf-connecting-ip,true-client-ip").split(
+                    ","
+                )
+                if h.strip()
+            ),
         )
         if not 0 <= settings.push_start_hour < settings.push_end_hour <= 24:
             raise RuntimeError("PUSH_START_HOUR precisa ser menor que PUSH_END_HOUR.")

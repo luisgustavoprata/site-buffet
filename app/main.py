@@ -11,14 +11,16 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import sessionmaker
 
 from app import errors, webpush
 from app.config import Settings
 from app.database import Base, add_missing_columns, make_engine
-from app.deps import get_today
+from app.deps import client_ip, get_today
+from app.ipguard import COOKIE, COUNTRY_URLS, VPN_URLS, IpGuard, env_sources, parse_ip
 from app.models import utcnow
 from app.notifications import run_due
 from app.ratelimit import LoginLimiter
@@ -71,13 +73,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ensure_owner(db, settings)
             if settings.seed_demo:
                 seed_demo(db, get_today(settings), settings.password_iterations)
-        task = asyncio.create_task(push_loop()) if settings.push_scheduler else None
+        tasks = []
+        if settings.push_scheduler:
+            tasks.append(asyncio.create_task(push_loop()))
+        if settings.ipguard_enabled and settings.ipguard_refresh:
+            tasks.append(asyncio.create_task(ipguard_loop()))
         yield
-        if task:
+        for task in tasks:
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await task
         engine.dispose()
+
+    async def ipguard_loop() -> None:
+        """Baixa as listas de IPs (Brasil e VPN/datacenter) ao iniciar e uma vez por dia."""
+        country = env_sources(settings.ipguard_country_sources, COUNTRY_URLS)
+        vpn = env_sources(settings.ipguard_vpn_sources, VPN_URLS)
+        while True:
+            await asyncio.to_thread(app.state.ipguard.refresh, country, vpn)
+            await asyncio.sleep(24 * 3600)
 
     def push_tick() -> None:
         with session_factory.begin() as db:
@@ -121,9 +135,63 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.login_limiter = LoginLimiter(
         settings.login_max_attempts, settings.login_window_seconds
     )
+    app.state.ipguard = IpGuard(settings.secret_key)
+    app.state.ipguard.load_bundled()  # cópia da lista do Brasil, até baixar a atualizada
     app.state.push_sender = webpush.send  # os testes trocam por um envio de mentira
     app.state.dummy_hash = hash_password("senha-inexistente", settings.password_iterations)
 
+    # ---------- Barreira de segurança por IP ----------
+
+    open_paths = ("/health", "/sw.js", "/manifest.webmanifest", "/favicon.ico")
+    sensitive_paths = ("/auth/token", "/auth/register")
+
+    def wants_page(request: Request) -> bool:
+        return request.method == "GET" and (
+            request.url.path in ("/", "/docs") or "text/html" in request.headers.get("accept", "")
+        )
+
+    @app.middleware("http")
+    async def ip_barrier(request: Request, call_next):
+        path = request.url.path
+        if (
+            not settings.ipguard_enabled
+            or path in open_paths
+            or path.startswith(("/static/", "/_seguranca"))
+        ):
+            return await call_next(request)
+        guard: IpGuard = app.state.ipguard
+        ip = parse_ip(client_ip(request))
+        sensitive = request.method not in ("GET", "HEAD", "OPTIONS") or path in sensitive_paths
+        decision = guard.decide(
+            ip, passed=guard.has_pass(ip, request.cookies.get(COOKIE)), sensitive=sensitive
+        )
+        if decision.action == "ok":
+            return await call_next(request)
+        if decision.action == "slow_down":
+            return JSONResponse(
+                {"detail": "Muitos acessos em pouco tempo. Aguarde alguns minutos."},
+                status_code=429,
+                headers={"Retry-After": "300"},
+            )
+        # Robôs de busca confirmados e prévias de link (só a página inicial) seguem normais.
+        agent = request.headers.get("user-agent", "")
+        if request.method == "GET" and (
+            (path == "/" and guard.is_preview_bot(agent))
+            or await asyncio.to_thread(guard.is_search_bot, ip, agent)
+        ):
+            return await call_next(request)
+        if wants_page(request):
+            return FileResponse(
+                STATIC_DIR / "seguranca.html",
+                status_code=403,
+                headers={"Cache-Control": "no-store"},
+            )
+        return JSONResponse(
+            {"detail": "Confirme a verificação de segurança para continuar.", "challenge": True},
+            status_code=403,
+        )
+
+    # Registrado depois da barreira: vale também para a página de verificação.
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
         response = await call_next(request)
@@ -131,6 +199,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Content-Security-Policy", CONTENT_SECURITY_POLICY)
+        return response
+
+    class ChallengeAnswer(BaseModel):
+        token: str = Field(max_length=600)
+        nonce: str = Field(max_length=32)
+
+    @app.get("/_seguranca", include_in_schema=False)
+    def challenge_page() -> FileResponse:
+        return FileResponse(STATIC_DIR / "seguranca.html", headers={"Cache-Control": "no-store"})
+
+    @app.get("/_seguranca/desafio", include_in_schema=False)
+    def new_challenge(request: Request) -> JSONResponse:
+        challenge = app.state.ipguard.new_challenge(parse_ip(client_ip(request)))
+        return JSONResponse(challenge, headers={"Cache-Control": "no-store"})
+
+    @app.post("/_seguranca/verificar", include_in_schema=False)
+    def check_challenge(answer: ChallengeAnswer, request: Request) -> JSONResponse:
+        ip = parse_ip(client_ip(request))
+        cookie = app.state.ipguard.verify(ip, answer.token, answer.nonce)
+        if cookie is None:
+            return JSONResponse({"ok": False}, status_code=403)
+        response = JSONResponse({"ok": True})
+        https = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+        response.set_cookie(
+            COOKIE, cookie, max_age=24 * 3600, httponly=True, samesite="lax", secure=https
+        )
         return response
 
     errors.register(app)
