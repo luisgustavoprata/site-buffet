@@ -499,14 +499,23 @@ function footer() {
             h("li", null, h("a", { href: "#/orcamento" }, "Pedir orçamento")),
             h("li", null, h("a", { href: state.user ? (isOwner() ? "#/painel" : "#/conta") : "#/entrar" }, state.user ? "Minha área" : "Entrar"))))),
       h("div", { class: "footer__bottom" },
-        h("span", null, `© ${new Date().getFullYear()} ${s.business_name}`),
+        h("span", null, `© ${new Date().getFullYear()} ${s.business_name} · `, h("a", { href: "#/privacidade" }, "Política de privacidade")),
         state.demo && h("a", { href: "/docs" }, "API do site"))));
+}
+
+/** Botão do WhatsApp sempre à mão nas páginas do site (não aparece para a administração). */
+function whatsappFloat() {
+  const wa = whatsappLink(state.site.phone);
+  if (!wa || isOwner()) return null;
+  const text = encodeURIComponent(`Olá! Vim pelo site da ${state.site.business_name} e queria saber sobre um evento.`);
+  return h("a", { class: "wa-float", href: `${wa}?text=${text}`, target: "_blank", rel: "noopener", "aria-label": "Conversar pelo WhatsApp" },
+    icon("whatsapp"), h("span", null, "WhatsApp"));
 }
 
 function publicPage(content, opts = {}) {
   fill(root(),
     h("a", { class: "skip", href: "#conteudo", onclick: (e) => { e.preventDefault(); document.getElementById("conteudo")?.focus(); } }, "Pular para o conteúdo"),
-    header(opts), h("main", { id: "conteudo", tabindex: "-1" }, content), footer());
+    header(opts), h("main", { id: "conteudo", tabindex: "-1" }, content), footer(), whatsappFloat());
   pushInvite();
 }
 
@@ -695,6 +704,7 @@ const ROUTES = [
   [/^\/$/, () => renderHome()],
   [/^\/(sobre|historia|contato)$/, (m) => renderHome(m[1])],
   [/^\/portfolio$/, (m, q) => renderPortfolio(q)],
+  [/^\/privacidade$/, () => renderPrivacy()],
   [/^\/portfolio\/(\d+)$/, (m) => renderEvent(Number(m[1]))],
   [/^\/entrar$/, (m, q) => renderAuth("login", q)],
   [/^\/cadastro$/, (m, q) => renderAuth("register", q)],
@@ -814,6 +824,77 @@ function sectionHead(eyebrow, title, lede, id, center = false) {
     lede && h("p", { class: "section__lede" }, lede));
 }
 
+/** Texto longo no celular: mostra o começo e um botão "Ler mais" (no computador, tudo). */
+function readMore(prose, text) {
+  if ((text || "").length < 400) return prose;
+  const box = h("div", { class: "read-more" }, prose);
+  const button = h("button", { class: "read-more__btn", type: "button", "aria-expanded": "false" }, "Ler mais");
+  button.addEventListener("click", () => {
+    const open = box.classList.toggle("is-open");
+    button.setAttribute("aria-expanded", String(open));
+    button.textContent = open ? "Ler menos" : "Ler mais";
+  });
+  box.append(button);
+  return box;
+}
+
+/** Política de privacidade (LGPD), montada com os dados de contato do site. */
+function renderPrivacy() {
+  const s = state.site;
+  document.title = `Política de privacidade | ${s.business_name}`;
+  const contact = [s.phone && `WhatsApp ${s.phone}`, s.email].filter(Boolean).join(" ou ") || "o contato do rodapé";
+  const block = (title, ...text) => [h("h2", null, title), ...text.map((t) => h("p", null, t))];
+  publicPage(h("section", { class: "section" },
+    h("div", { class: "wrap legal prose" },
+      h("p", { class: "eyebrow" }, "LGPD"),
+      h("h1", null, "Política de privacidade"),
+      h("p", null, `Esta página explica, em linguagem simples, quais dados a ${s.business_name} guarda neste site, para quê e como você pode pedir para ver, corrigir ou apagar os seus dados.`),
+      block("Quais dados guardamos",
+        "Ao criar sua conta: nome, e-mail, telefone/WhatsApp, cidade e a senha (guardada de forma embaralhada, que nem nós conseguimos ler).",
+        "Ao pedir um orçamento: tipo de festa, data, número de convidados, local, faixa de investimento, os detalhes que você escrever e as mensagens e fotos da conversa.",
+        "Comentários e corações que você deixar nos eventos do portfólio aparecem com o seu primeiro nome e a inicial do sobrenome."),
+      block("Para que usamos",
+        "Só para preparar o seu orçamento, conversar com você sobre o evento e, se você ativar, mandar notificações no celular ou no computador. Não vendemos nem compartilhamos seus dados com outras empresas para propaganda."),
+      block("Segurança",
+        "O site usa conexão segura (HTTPS), limita tentativas de senha e cada cliente só enxerga os próprios pedidos. As fotos enviadas têm a localização (GPS) removida."),
+      block("Notificações e dados no aparelho",
+        "As notificações só são enviadas se você ativar, e podem ser desligadas a qualquer momento em Minha conta ou nas configurações do navegador. O site guarda no seu navegador apenas o acesso à sua conta."),
+      block("Seus direitos",
+        `Você pode pedir para ver, corrigir ou apagar os seus dados a qualquer momento pelo ${contact}. Respondemos o quanto antes.`),
+      h("p", { class: "muted" }, `${s.business_name}${s.city ? ` · ${s.city}` : ""}`))));
+}
+
+/** Quem entrou é recebido pelo nome, com o que há de novo nos pedidos. */
+async function welcomeBar() {
+  if (!state.user) return;
+  const hero = document.querySelector("main .hero");
+  if (!hero) return;
+  const name = firstName(state.user.name);
+  const bar = (text, href, action) => h("div", { class: "welcome" },
+    h("div", { class: "wrap welcome__inner" },
+      h("p", null, text),
+      h("a", { class: "btn btn--primary btn--small", href }, action)));
+  if (isOwner()) {
+    hero.after(bar("Você está vendo o site como os clientes veem.", "#/painel", "Ir para o painel"));
+    return;
+  }
+  let quotes = [];
+  try {
+    quotes = await api.get("/quotes");
+  } catch {
+    return;
+  }
+  if (!document.body.contains(hero)) return; // a pessoa já mudou de página
+  const chef = firstName(state.site.owner_name, "A gente");
+  const answered = quotes.find((q) => q.unread > 0);
+  const latest = quotes[0];
+  hero.after(answered
+    ? bar(h("span", null, `Olá, ${name}! `, h("strong", null, `${chef} respondeu o seu pedido de ${answered.event_type}.`)), `#/conta/pedidos/${answered.id}`, "Ver conversa")
+    : latest
+      ? bar(`Olá, ${name}! Seu pedido de ${latest.event_type} está: ${STATUS[latest.status] || latest.status}.`, `#/conta/pedidos/${latest.id}`, "Ver meu pedido")
+      : bar(`Olá, ${name}! Que tal contar sobre o seu evento?`, "#/orcamento", "Pedir orçamento"));
+}
+
 async function renderHome(anchor) {
   const s = state.site;
   document.title = `${s.business_name} | ${s.tagline || "Buffet"}`;
@@ -822,11 +903,12 @@ async function renderHome(anchor) {
   const years = s.founded_year ? new Date().getFullYear() - s.founded_year : 0;
   const ownerFirst = firstName(s.owner_name, "a gente");
 
+  // Só números que impressionam: os pequenos ficam escondidos até crescerem.
   const stats = [
     years > 0 && [years, years === 1 ? "ano de história" : "anos de história"],
-    s.stats.events > 0 && [s.stats.events, s.stats.events === 1 ? "evento no portfólio" : "eventos no portfólio"],
-    s.stats.guests > 0 && [s.stats.guests, "convidados nesses eventos"],
-    s.stats.photos > 0 && [s.stats.photos, "fotos para você conhecer"],
+    s.stats.events >= 10 && [s.stats.events, "eventos no portfólio"],
+    s.stats.guests >= 300 && [s.stats.guests, "convidados servidos"],
+    s.stats.photos >= 30 && [s.stats.photos, "fotos para você conhecer"],
   ].filter(Boolean);
 
   const marqueeWords = [...new Set(s.event_types.filter((t) => t !== "Outro"))];
@@ -857,8 +939,11 @@ async function renderHome(anchor) {
           h("strong", { class: "stat__n", "data-count": n }, "0"),
           h("span", { class: "stat__label" }, label))))),
 
-    marqueeWords.length > 2 && h("div", { class: "marquee", role: "presentation" },
-      h("div", { class: "marquee__track" }, marqueeRow(), marqueeRow())),
+    marqueeWords.length > 2 && h("div", { class: "marquee" },
+      h("span", { class: "marquee__label" }, "Atendemos"),
+      h("p", { class: "sr-only" }, `Atendemos: ${marqueeWords.join(", ")}.`),
+      h("div", { class: "marquee__window", "aria-hidden": "true" },
+        h("div", { class: "marquee__track" }, marqueeRow(), marqueeRow()))),
 
     h("section", { class: "section", id: "sobre", "aria-labelledby": "t-sobre" },
       h("div", { class: "wrap" },
@@ -870,7 +955,7 @@ async function renderHome(anchor) {
             h("p", { class: "eyebrow" }, "Quem cozinha para você"),
             h("h2", { class: "about__name", id: "t-sobre" }, s.owner_name || "Sobre mim"),
             s.owner_role && h("p", { class: "about__role" }, s.owner_role),
-            h("div", { class: "prose" }, paragraphsWithCap(s.bio)),
+            readMore(h("div", { class: "prose" }, paragraphsWithCap(s.bio)), s.bio),
             s.owner_name && h("p", { class: "signature" }, firstName(s.owner_name)))),
         s.bio_photos.length > 0 && h("div", { class: `collage collage--${Math.min(s.bio_photos.length, 3)}` },
           s.bio_photos.map((p) => h("figure", { class: "reveal" }, img(p.image_id, p.caption), p.caption && h("figcaption", null, p.caption)))))),
@@ -880,13 +965,20 @@ async function renderHome(anchor) {
         h("div", { class: "history__text reveal" },
           s.founded_year && h("p", { class: "history__year" }, h("small", null, "Desde"), s.founded_year),
           h("h2", { class: "section__title", id: "t-historia" }, s.history_title || "Nossa história"),
-          h("div", { class: "prose" }, paragraphs(s.history))),
+          readMore(h("div", { class: "prose" }, paragraphs(s.history)), s.history)),
         s.history_image_id && h("figure", { class: "history__img reveal" }, img(s.history_image_id, "")))),
 
     h("section", { class: "section", "aria-labelledby": "t-ocasioes" },
       h("div", { class: "wrap" },
         sectionHead("Para cada ocasião", "Do brinde ao último doce", "Cardápio, montagem e serviço pensados para o tipo de festa que você vai receber.", "t-ocasioes"),
         occasions)),
+
+    s.included.length > 0 && h("section", { class: "section section--sand", "aria-labelledby": "t-inclui" },
+      h("div", { class: "wrap" },
+        sectionHead("Sem preocupação", "O que está incluído", "Você cuida dos convidados; o resto é com a gente.", "t-inclui"),
+        h("ul", { class: `included included--${s.included.length}` }, s.included.map((item) => h("li", { class: "included__item reveal" },
+          h("span", { class: "included__check", "aria-hidden": "true" }, "✓"),
+          h("div", null, h("h3", null, item.title), item.text && h("p", null, item.text))))))),
 
     h("section", { class: "section section--tight", "aria-labelledby": "t-portfolio" },
       h("div", { class: "wrap" },
@@ -895,13 +987,31 @@ async function renderHome(anchor) {
           h("a", { class: "link-arrow reveal", href: "#/portfolio" }, "Ver todos os eventos", icon("right"))),
         featured)),
 
+    s.testimonials.length > 0 && h("section", { class: "section section--sand", "aria-labelledby": "t-depoimentos" },
+      h("div", { class: "wrap" },
+        sectionHead("Quem já festejou com a gente", "O que dizem os clientes", null, "t-depoimentos"),
+        h("div", { class: "quotes-grid" }, s.testimonials.map((t) => h("figure", { class: "testimonial reveal" },
+          h("blockquote", null, h("p", null, t.text)),
+          h("figcaption", null, h("strong", null, t.name), t.event && h("span", null, t.event))))))),
+
     h("section", { class: "section section--dark", "aria-labelledby": "t-como" },
       h("div", { class: "wrap" },
         sectionHead("Orçamento", "Como pedir o seu orçamento", "A conversa acontece aqui no site e fica guardada na sua conta. Nada de mensagem perdida.", "t-como"),
         h("ol", { class: "steps" },
-          h("li", { class: "step reveal" }, h("h3", null, "Crie sua conta"), h("p", null, "Nome, e-mail, telefone e cidade. Leva um minuto.")),
+          state.user
+            ? h("li", { class: "step step--done reveal" }, h("h3", null, "Sua conta está pronta"), h("p", null, "Você já entrou. Agora é só contar sobre o evento."))
+            : h("li", { class: "step reveal" }, h("h3", null, "Crie sua conta"), h("p", null, "Nome, e-mail, telefone e cidade. Leva um minuto.")),
           h("li", { class: "step reveal" }, h("h3", null, "Conte sobre o evento"), h("p", null, "Tipo de festa, data, convidados, local e o que você imagina.")),
-          h("li", { class: "step reveal" }, h("h3", null, `Converse com ${ownerFirst}`), h("p", null, "A resposta chega aqui mesmo. Você acompanha tudo pela sua conta."))))),
+          h("li", { class: "step reveal" }, h("h3", null, `Converse com ${ownerFirst}`), h("p", null, "A resposta chega aqui mesmo, com aviso no celular."))),
+        state.user && !isOwner() && h("div", { class: "steps__cta reveal" },
+          h("a", { class: "btn btn--light btn--lg", href: "#/orcamento" }, "Pedir orçamento agora")))),
+
+    s.faq.length > 0 && h("section", { class: "section", "aria-labelledby": "t-faq" },
+      h("div", { class: "wrap faq" },
+        sectionHead("Dúvidas", "Perguntas frequentes", null, "t-faq"),
+        h("div", { class: "faq__list" }, s.faq.map((item) => h("details", { class: "faq__item reveal" },
+          h("summary", null, item.question),
+          h("div", { class: "prose" }, paragraphs(item.answer))))))),
 
     h("section", { class: "cta-band", "aria-labelledby": "t-cta" },
       (s.hero_image_id || s.history_image_id) && h("img", { src: media(s.hero_image_id || s.history_image_id), alt: "", loading: "lazy" }),
@@ -913,6 +1023,7 @@ async function renderHome(anchor) {
 
   animateOnScroll();
   if (anchor) requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
+  welcomeBar();
 
   let events = [];
   try {
@@ -927,6 +1038,7 @@ async function renderHome(anchor) {
     t.count += 1;
     t.cover ||= e.photos[0]?.image_id;
   }
+  occasions.classList.add(`occasions--${Math.min(byType.size || s.event_types.length, 6)}`);
   fill(occasions, byType.size
     ? [...byType.entries()].slice(0, 6).map(([type, info]) => h("a", { class: "occasion reveal", href: `#/portfolio?tipo=${encodeURIComponent(type)}` },
       info.cover && img(info.cover, ""),
@@ -2331,6 +2443,25 @@ async function adminSite(main) {
     ]),
     h("div", { class: "box" }, h("h2", null, "Foto da história"), imageField("Foto da seção Nossa história", "history_image_id")),
 
+    listEditor({
+      title: "O que está incluído", key: "included", save,
+      intro: "Aparece no início do site, em cartões com ✓. Ex.: cardápio, equipe, louças, montagem.",
+      fields: [["title", "Item", 80], ["text", "Explicação curta (opcional)", 300]],
+      addLabel: "Adicionar item", suggestions: SUGGESTED.included,
+    }),
+    listEditor({
+      title: "Depoimentos de clientes", key: "testimonials", save,
+      intro: "Use só depoimentos reais, com a autorização da pessoa. Aparecem no início do site.",
+      fields: [["name", "Nome (ex.: Júlia e Rafael)", 80], ["event", "Festa (ex.: Casamento)", 80], ["text", "O que a pessoa disse", 600, "textarea"]],
+      addLabel: "Adicionar depoimento",
+    }),
+    listEditor({
+      title: "Perguntas frequentes", key: "faq", save,
+      intro: "As dúvidas que os clientes mais mandam. Aparecem no início do site, antes do convite final.",
+      fields: [["question", "Pergunta", 200], ["answer", "Resposta", 1500, "textarea"]],
+      addLabel: "Adicionar pergunta", suggestions: SUGGESTED.faq,
+    }),
+
     textForm("Contato", [
       h("div", { class: "form__row" },
         field({ label: "Telefone / WhatsApp", name: "phone", value: s.phone }),
@@ -2339,6 +2470,72 @@ async function adminSite(main) {
         field({ label: "Instagram (sem @)", name: "instagram", value: s.instagram }),
         field({ label: "Cidade", name: "city", value: s.city })),
     ], "Aparece no rodapé do site."));
+}
+
+/* Pontos de partida para a Gracielle ajustar (depoimentos não: precisam ser reais). */
+const SUGGESTED = {
+  faq: [
+    { question: "Com quanto tempo de antecedência devo reservar?", answer: "Para casamentos e festas grandes, o ideal é de 4 a 6 meses. Eventos menores costumam dar certo com 30 dias. Pergunte pela sua data!" },
+    { question: "Vocês atendem fora da cidade?", answer: "Sim. Atendemos a cidade e a região; para locais mais distantes, o deslocamento da equipe entra no orçamento." },
+    { question: "Dá para fazer uma degustação?", answer: "Sim. Depois de fechar o cardápio, marcamos uma degustação para você provar e ajustar os pratos." },
+    { question: "Existe um número mínimo de convidados?", answer: "Conte sobre o evento: a gente vê o que é possível para o seu número de convidados." },
+  ],
+  included: [
+    { title: "Cardápio sob medida", text: "Montado com você, provado na degustação." },
+    { title: "Equipe de serviço", text: "Garçons e copeiros durante toda a festa." },
+    { title: "Louças e talheres", text: "Pratos, copos, talheres e utensílios de serviço." },
+    { title: "Montagem da mesa", text: "Mesa posta e decoração do buffet e dos doces." },
+  ],
+};
+
+/** Editor de uma lista do site (perguntas, depoimentos, itens): adicionar, ordenar, tirar. */
+function listEditor({ title, intro, key, fields, addLabel, suggestions, save }) {
+  let items = (state.site[key] || []).map((item) => ({ ...item }));
+  const rows = h("div", { class: "list-editor" });
+  const form = h("form", { class: "box", novalidate: true });
+
+  const draw = () => {
+    fill(rows, items.length ? items.map((item, i) => h("fieldset", { class: "list-editor__row" },
+      h("legend", { class: "sr-only" }, `${title}: item ${i + 1}`),
+      h("div", { class: "form" }, fields.map(([name, label, max, as]) => {
+        const f = field({ label, name: `${key}.${i}.${name}`, as: as || "input", value: item[name] || "", maxlength: max });
+        f.querySelector("input, textarea").addEventListener("input", (e) => (item[name] = e.target.value));
+        return f;
+      })),
+      h("div", { class: "list-editor__tools" },
+        h("button", { class: "btn btn--ghost btn--small", type: "button", disabled: i === 0, "aria-label": "Subir", onclick: () => move(i, -1) }, icon("up")),
+        h("button", { class: "btn btn--ghost btn--small", type: "button", disabled: i === items.length - 1, "aria-label": "Descer", onclick: () => move(i, 1) }, icon("down")),
+        h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: () => { items.splice(i, 1); draw(); } }, icon("trash"), " Tirar"))))
+      : h("p", { class: "muted" }, "Nada aqui ainda: enquanto a lista estiver vazia, esta parte não aparece no site."));
+  };
+  const move = (i, d) => {
+    [items[i], items[i + d]] = [items[i + d], items[i]];
+    draw();
+  };
+  draw();
+
+  fill(form,
+    h("div", { class: "box__head" }, h("h2", null, title)),
+    h("p", { class: "muted", style: "font-size:14px;margin-top:-8px" }, intro),
+    h("p", { class: "form__error", role: "alert", tabindex: "-1" }),
+    rows,
+    h("div", { class: "form__actions", style: "justify-content:space-between;flex-wrap:wrap" },
+      h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" },
+        h("button", { class: "btn btn--ghost", type: "button", disabled: items.length >= 12, onclick: () => { items.push({}); draw(); } }, addLabel),
+        suggestions && !items.length && h("button", { class: "btn btn--ghost", type: "button", onclick: (e) => { items = suggestions.map((x) => ({ ...x })); draw(); e.currentTarget.remove(); } }, "Começar com sugestões")),
+      h("button", { class: "btn btn--primary", type: "submit" }, "Salvar")));
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const clean = items
+      .map((item) => Object.fromEntries(fields.map(([name]) => [name, (item[name] || "").trim()])))
+      .filter((item) => Object.values(item).some(Boolean));
+    submitting(form, async () => {
+      await save({ [key]: clean }, `${title}: salvo.`);
+      items = (state.site[key] || []).map((item) => ({ ...item }));
+      draw();
+    });
+  });
+  return form;
 }
 
 /* ---------- Clientes ---------- */

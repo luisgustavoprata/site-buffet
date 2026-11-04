@@ -34,6 +34,9 @@ NEW_COLUMNS = [
     ("images", "access_key", "VARCHAR(64)"),
     ("messages", "image_id", "INTEGER REFERENCES images(id) ON DELETE SET NULL"),
     ("users", "owner_env_hash", "VARCHAR(255)"),
+    ("site_content", "faq", "JSON"),
+    ("site_content", "testimonials", "JSON"),
+    ("site_content", "included", "JSON"),
 ]
 
 

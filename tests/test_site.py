@@ -101,3 +101,38 @@ def test_bio_photos(api, client, owner):
     assert [p["image_id"] for p in site["bio_photos"]] == [two]
     assert client.get(f"/media/{one}").status_code == 404
     assert client.delete(f"/admin/site/bio-photos/{photo_id}", headers=owner).status_code == 404
+
+
+def test_owner_edits_faq_testimonials_and_included(client, owner):
+    assert client.get("/site").json()["faq"] == []
+    payload = {
+        "faq": [{"question": "Atendem fora da cidade?", "answer": "Sim, com deslocamento."}],
+        "testimonials": [{"name": "Júlia", "event": "Casamento", "text": "Foi lindo!"}],
+        "included": [{"title": "Louças", "text": ""}],
+    }
+    response = client.patch("/admin/site", json=payload, headers=owner)
+    assert response.status_code == 200, response.json()
+    site = client.get("/site").json()
+    assert site["faq"][0]["question"] == "Atendem fora da cidade?"
+    assert site["testimonials"][0]["name"] == "Júlia"
+    too_many = {"faq": [{"question": f"Pergunta {n}", "answer": "x"} for n in range(13)]}
+    assert client.patch("/admin/site", json=too_many, headers=owner).status_code == 422
+    bad = {"testimonials": [{"name": "J", "text": "oi"}]}
+    errors = client.patch("/admin/site", json=bad, headers=owner).json()["errors"]
+    assert {e["field"] for e in errors} == {"testimonials.0.name", "testimonials.0.text"}
+
+
+def test_home_has_link_preview_tags(client, owner, api):
+    client.patch(
+        "/admin/site",
+        json={"business_name": "Brunoise & Cia", "hero_text": 'Festas "inesquecíveis"'},
+        headers=owner,
+    )
+    page = client.get("/").text
+    assert '<meta property="og:title" content="Brunoise &amp; Cia">' in page
+    assert "Festas &quot;inesquecíveis&quot;" in page
+    assert "og:image" not in page  # sem capa ainda
+    cover = api.image(owner)
+    client.patch("/admin/site", json={"hero_image_id": cover}, headers=owner)
+    assert "/capa.jpg" in client.get("/").text
+    assert client.get("/capa.jpg").headers["content-type"].startswith("image/")

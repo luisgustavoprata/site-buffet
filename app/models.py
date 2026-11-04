@@ -4,6 +4,7 @@ import enum
 from datetime import UTC, date, datetime
 
 from sqlalchemy import (
+    JSON,
     Date,
     DateTime,
     Enum,
@@ -103,6 +104,10 @@ class SiteContent(Base):
     history_image_id: Mapped[int | None] = mapped_column(
         ForeignKey("images.id", ondelete="SET NULL")
     )
+    # Listas editadas no painel: perguntas frequentes, depoimentos e o que está incluído.
+    faq: Mapped[list] = mapped_column(JSON, default=list)
+    testimonials: Mapped[list] = mapped_column(JSON, default=list)
+    included: Mapped[list] = mapped_column(JSON, default=list)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
     )

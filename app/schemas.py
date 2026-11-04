@@ -134,6 +134,22 @@ class SiteStats(BaseModel):
     photos: int = 0
 
 
+class FaqItem(Input):
+    question: str = Field(min_length=3, max_length=200)
+    answer: str = Field(min_length=1, max_length=1500)
+
+
+class Testimonial(Input):
+    name: str = Field(min_length=2, max_length=80)
+    event: str = Field(default="", max_length=80)
+    text: str = Field(min_length=3, max_length=600)
+
+
+class IncludedItem(Input):
+    title: str = Field(min_length=2, max_length=80)
+    text: str = Field(default="", max_length=300)
+
+
 class SiteOut(Output):
     business_name: str
     tagline: str
@@ -152,7 +168,16 @@ class SiteOut(Output):
     hero_image_id: int | None
     owner_image_id: int | None
     history_image_id: int | None
+    faq: list[FaqItem] = []
+    testimonials: list[Testimonial] = []
+    included: list[IncludedItem] = []
     bio_photos: list[BioPhotoOut] = []
+
+    @field_validator("faq", "testimonials", "included", mode="before")
+    @classmethod
+    def empty_list(cls, value):
+        return value or []  # bancos antigos: a coluna nova começa vazia (nula)
+
     stats: SiteStats = SiteStats()
     event_types: list[str] = list(EVENT_TYPES)
     budgets: list[str] = list(BUDGETS)
@@ -176,6 +201,9 @@ class SiteUpdate(Input):
     hero_image_id: int | None = None
     owner_image_id: int | None = None
     history_image_id: int | None = None
+    faq: list[FaqItem] | None = Field(default=None, max_length=12)
+    testimonials: list[Testimonial] | None = Field(default=None, max_length=12)
+    included: list[IncludedItem] | None = Field(default=None, max_length=12)
 
     @field_validator("email")
     @classmethod

@@ -130,6 +130,54 @@ DEMO_TEXTS = {
     "phone": "",
     "email": "",
     "instagram": "",
+    "faq": [
+        {
+            "question": "Com quanto tempo de antecedência devo reservar?",
+            "answer": "Para casamentos e festas grandes, o ideal é de 4 a 6 meses. Eventos menores "
+            "costumam dar certo com 30 dias. Pergunte pela sua data: às vezes ainda há vaga.",
+        },
+        {
+            "question": "Vocês atendem fora da cidade?",
+            "answer": "Sim. Atendemos a cidade e a região; para locais mais distantes, o "
+            "deslocamento da equipe entra no orçamento.",
+        },
+        {
+            "question": "Dá para fazer uma degustação?",
+            "answer": "Sim. Depois de fechar o cardápio, marcamos uma degustação para você provar "
+            "e ajustar os pratos.",
+        },
+        {
+            "question": "Existe um número mínimo de convidados?",
+            "answer": "Atendemos a partir de 30 convidados. Para grupos menores, conte sobre o "
+            "evento que a gente vê o que é possível.",
+        },
+    ],
+    "testimonials": [
+        {
+            "name": "Júlia e Rafael",
+            "event": "Casamento",
+            "text": "Os convidados até hoje falam do risoto. Tudo chegou quentinho, no horário, e "
+            "a equipe foi um carinho com a gente do começo ao fim.",
+        },
+        {
+            "name": "Marina S.",
+            "event": "15 anos da filha",
+            "text": "Ela ouviu tudo o que a Lara queria e transformou em cardápio. Mesa linda e "
+            "comida melhor ainda.",
+        },
+        {
+            "name": "Ricardo P.",
+            "event": "Evento de empresa",
+            "text": "Coquetel impecável para 90 pessoas. Organização e pontualidade que fazem "
+            "diferença num evento corporativo.",
+        },
+    ],
+    "included": [
+        {"title": "Cardápio sob medida", "text": "Montado com você, provado na degustação."},
+        {"title": "Equipe de serviço", "text": "Garçons e copeiros uniformizados durante a festa."},
+        {"title": "Louças e talheres", "text": "Pratos, copos, talheres e utensílios de serviço."},
+        {"title": "Montagem da mesa", "text": "Mesa posta e decoração do buffet e dos doces."},
+    ],
 }
 OLD_DEMO_NAME = "Buffet Alecrim"
 

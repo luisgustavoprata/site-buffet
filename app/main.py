@@ -7,12 +7,15 @@ import asyncio
 import contextlib
 import logging
 import random
+import re
 from contextlib import asynccontextmanager
+from html import escape
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import (
     FileResponse,
+    HTMLResponse,
     JSONResponse,
     PlainTextResponse,
     RedirectResponse,
@@ -172,7 +175,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # ---------- Barreira de segurança por IP ----------
 
-    open_paths = ("/health", "/sw.js", "/manifest.webmanifest", "/favicon.ico", "/robots.txt")
+    open_paths = (
+        "/health",
+        "/sw.js",
+        "/manifest.webmanifest",
+        "/favicon.ico",
+        "/robots.txt",
+        "/capa.jpg",
+    )
     sensitive_paths = ("/auth/token", "/auth/register")
 
     def wants_page(request: Request) -> bool:
@@ -280,6 +290,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     @app.get("/_seguranca/capa", include_in_schema=False)
+    @app.get("/capa.jpg", include_in_schema=False)
     def challenge_cover() -> Response:
         # A capa já é pública no site; aqui ela abre também para quem ainda não passou.
         with session_factory() as db:
@@ -350,9 +361,47 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "User-agent: *\nAllow: /$\nAllow: /static/\nAllow: /media/\nDisallow: /\n"
         )
 
+    index_html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
     @app.get("/", include_in_schema=False)
-    def home() -> FileResponse:
-        return FileResponse(STATIC_DIR / "index.html")
+    def home(request: Request) -> HTMLResponse:
+        # Prévia do link no WhatsApp, Instagram e Google: nome, frase e foto da capa do site.
+        with session_factory() as db:
+            site = db.get(SiteContent, SITE_ID)
+            name = (site.business_name if site else "") or "Buffet"
+            text = (site.hero_text or site.tagline) if site else ""
+            cover = site.hero_image_id if site else None
+        base = str(request.base_url).rstrip("/")
+        if request.headers.get("x-forwarded-proto") == "https":
+            base = base.replace("http://", "https://", 1)
+        tags = [
+            ("og:type", "website"),
+            ("og:locale", "pt_BR"),
+            ("og:site_name", name),
+            ("og:title", name),
+            ("og:description", text),
+            ("og:url", f"{base}/"),
+        ]
+        if cover:
+            # A capa por um endereço aberto: os robôs de prévia (WhatsApp etc.) vêm de
+            # datacenters e cairiam na verificação de segurança em /media.
+            tags.append(("og:image", f"{base}/capa.jpg"))
+        meta = "".join(
+            f'\n  <meta property="{key}" content="{escape(value)}">' for key, value in tags if value
+        )
+        card = "summary_large_image" if cover else "summary"
+        meta += f'\n  <meta name="twitter:card" content="{card}">'
+        page = index_html.replace(
+            "<title>Brunoise Gastronomia</title>", f"<title>{escape(name)}</title>", 1
+        )
+        if text:
+            page = re.sub(
+                r'<meta name="description" content="[^"]*">',
+                lambda _m: f'<meta name="description" content="{escape(text)}">',
+                page,
+                count=1,
+            )
+        return HTMLResponse(page.replace("</head>", f"{meta}\n</head>", 1))
 
     @app.get("/health", tags=["Sistema"], summary="Verifica se o site está no ar")
     def health() -> dict:
