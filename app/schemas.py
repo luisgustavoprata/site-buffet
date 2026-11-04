@@ -65,6 +65,14 @@ def _phone(value: str | None) -> str | None:
 
 
 Email = Annotated[str, Field(max_length=255), AfterValidator(_email)]
+
+
+def _required(value: str | None) -> str:
+    if not value:
+        raise ValueError("Campo obrigatório.")  # o buffet responde pelo WhatsApp
+    return value
+
+
 Phone = Annotated[str | None, AfterValidator(_phone)]
 Text = Annotated[str, Field(max_length=4000)]
 
@@ -87,7 +95,7 @@ class ErrorResponse(BaseModel):
 class UserCreate(Input):
     name: str = Field(min_length=3, max_length=120)
     email: Email
-    phone: Annotated[str, AfterValidator(_phone)]
+    phone: Annotated[str, AfterValidator(_phone), AfterValidator(_required)]
     city: str = Field(min_length=2, max_length=80)
     password: str = Field(min_length=8, max_length=128)
 

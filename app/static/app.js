@@ -319,8 +319,9 @@ const api = {
         if (needsLogin(currentPath())) {
           toast("Sua sessão expirou. Entre novamente.", "error");
           go(`/entrar?volta=${encodeURIComponent(currentPath())}`);
-        } else if (state.site) {
+        } else if (state.site && !document.querySelector("main form")) {
           render(); // página aberta a todos: continua nela, só sem a conta no topo
+          // (com um formulário na tela, nada é redesenhado: o que a pessoa digitou fica)
         }
       }
       const message = typeof data.detail === "string" ? data.detail
@@ -1412,6 +1413,23 @@ function renderAuth(mode, query) {
     h("button", { class: "btn btn--primary btn--block", type: "submit" }, isLogin ? "Entrar" : "Criar minha conta"));
 
   form.elements.phone?.addEventListener("input", (e) => (e.target.value = maskPhone(e.target.value)));
+  // O que já foi digitado (menos a senha) volta se a página recarregar no meio do cadastro.
+  const DRAFT_KEY = "buffet.cadastro";
+  const draftFields = ["name", "email", "phone", "city"];
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "{}");
+    for (const name of draftFields) if (form.elements[name] && draft[name]) form.elements[name].value = draft[name];
+  } catch {
+    /* sem armazenamento: começa vazio */
+  }
+  form.addEventListener("input", () => {
+    try {
+      const v = formValues(form);
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(Object.fromEntries(draftFields.map((n) => [n, v[n] || ""]))));
+    } catch {
+      /* ignora */
+    }
+  });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const v = formValues(form);
@@ -1426,6 +1444,11 @@ function renderAuth(mode, query) {
         toast("Conta criada! Agora entre com o seu e-mail e senha.");
         go(`/entrar${suffix}`);
         return;
+      }
+      try {
+        sessionStorage.removeItem(DRAFT_KEY);
+      } catch {
+        /* ignora */
       }
       toast(isLogin ? `Olá, ${user.name.split(" ")[0]}!` : "Conta criada. Bem-vindo(a)!");
       afterLogin(user, back);

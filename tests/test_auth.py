@@ -137,3 +137,9 @@ def test_owner_creates_a_temporary_password_for_a_client(api, client, owner):
     assert api.login("ana@exemplo.com", temporary).status_code == 200
     owner_id = client.get("/auth/me", headers=owner).json()["id"]
     assert client.post(f"/admin/clients/{owner_id}/password", headers=owner).status_code == 404
+
+
+def test_phone_is_required_to_register(api):
+    response = api.register(phone="")
+    assert response.status_code == 422
+    assert {"field": "phone", "message": "Campo obrigatório."} in response.json()["errors"]
