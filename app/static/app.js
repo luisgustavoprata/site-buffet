@@ -695,6 +695,8 @@ function pushCard({ owner = false } = {}) {
         await push.disable();
         toast("Notificações desativadas neste aparelho.");
       }));
+    // Já ativadas, bloqueadas ou sem suporte: vira uma linha discreta (o que importa são os pedidos).
+    card.classList.toggle("push-card--compact", !owner && st !== "off");
     body.replaceChildren(h("p", null, texts[st]), actions);
   };
   paint();
@@ -1076,7 +1078,7 @@ function eventCard(e, extra = "") {
 async function renderPortfolio(query) {
   document.title = `Portfólio | ${state.site.business_name}`;
   const chips = h("div", { class: "chips", role: "group", "aria-label": "Filtrar por tipo de evento" });
-  const grid = h("div", { class: "masonry" }, loading());
+  const grid = h("div", { class: "event-grid" }, loading());
   publicPage(h("div", { class: "wrap", style: "padding-bottom:96px" },
     h("div", { class: "page-head page-head--center" },
       h("p", { class: "eyebrow" }, "Portfólio"),
@@ -1346,9 +1348,9 @@ function lightbox(ids, start, title) {
 
 /* ===================== 5. Entrar, cadastro e orçamento ===================== */
 
-function splitPage(asideTitle, asideText, content, { minimal = false } = {}) {
+function splitPage(asideTitle, asideText, content, { minimal = false, form = false } = {}) {
   const s = state.site;
-  fill(root(), header({ minimal }), h("main", { id: "conteudo", class: "split" },
+  fill(root(), header({ minimal }), h("main", { id: "conteudo", class: `split${form ? " split--form" : ""}` },
     h("aside", { class: "split__aside" },
       s.hero_image_id && h("img", { src: media(s.hero_image_id), alt: "" }),
       h("div", null,
@@ -1696,7 +1698,7 @@ function renderQuoteForm() {
     h("div", { class: "panel-card panel-card--wide" },
       h("p", { class: "eyebrow" }, `Olá, ${firstName(state.user.name)}`),
       h("h1", null, "Pedir orçamento"),
-      form));
+      form), { form: true });
 }
 
 /* ===================== 6. Área do cliente e conversa ===================== */
@@ -1712,7 +1714,8 @@ const STATUS = {
 const statusPill = (s) => h("span", { class: `status status--${s}` }, STATUS[s] || s);
 
 function quoteItem(q, href, active, showClient) {
-  return h("a", { class: `quote-item${q.unread ? " has-unread" : ""}`, href, "aria-current": active ? "true" : null },
+  const isNew = showClient && q.status === "novo"; // painel: pedido que ainda espera a primeira resposta
+  return h("a", { class: `quote-item${q.unread ? " has-unread" : ""}${isNew ? " quote-item--new" : ""}`, href, "aria-current": active ? "true" : null },
     h("div", null,
       h("p", { class: "quote-item__title" }, showClient ? q.client.name : q.event_type, statusPill(q.status)),
       h("p", { class: "quote-item__meta" },
@@ -1753,13 +1756,13 @@ async function renderAccount(openId) {
         h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: changePassword }, "Trocar senha"),
         h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: () => session.logout() }, "Sair"),
         h("a", { class: "btn btn--primary btn--small", href: "#/orcamento" }, "Novo pedido"))),
-    pushCard(),
     h("section", { "aria-labelledby": "t-pedidos", style: "display:grid;gap:14px" },
       h("h2", { id: "t-pedidos", style: "font-size:26px" }, "Meus pedidos de orçamento"),
       quotes.length
         ? h("div", { class: "quote-list" }, quotes.map((q) => quoteItem(q, `#/conta/pedidos/${q.id}`)))
         : h("div", { class: "empty" }, "Você ainda não pediu nenhum orçamento.",
-          h("a", { class: "btn btn--primary", href: "#/orcamento" }, "Agendar evento"))));
+          h("a", { class: "btn btn--primary", href: "#/orcamento" }, "Agendar evento"))),
+    pushCard());
 }
 
 function editProfile() {
@@ -1852,11 +1855,20 @@ async function chatView(quoteId, { back, onStatus } = {}) {
         if (stick) body.scrollTop = body.scrollHeight; // a foto carregou depois: continua no fim
       });
     }
-    body.append(h("div", { class: `bubble ${mine ? "bubble--me" : "bubble--them"}${photo ? " bubble--photo" : ""}` },
-      !mine && h("span", { class: "bubble__who" }, m.from_owner ? state.site.owner_name || state.site.business_name : quote.client.name),
+    const who = m.from_owner ? state.site.owner_name || state.site.business_name : quote.client.name;
+    const bubble = h("div", { class: `bubble ${mine ? "bubble--me" : "bubble--them"}${photo ? " bubble--photo" : ""}` },
+      !mine && h("span", { class: "bubble__who" }, who),
       photo,
       m.body && h("span", null, m.body),
-      h("time", { datetime: m.created_at }, TIME.format(date))));
+      h("time", { datetime: m.created_at }, TIME.format(date)));
+    if (mine) {
+      body.append(bubble);
+    } else {
+      const avatar = m.from_owner && state.site.owner_image_id
+        ? h("img", { class: "msg__avatar", src: media(state.site.owner_image_id), alt: "" })
+        : h("span", { class: "msg__avatar", "aria-hidden": "true" }, (who || "?").charAt(0).toUpperCase());
+      body.append(h("div", { class: "msg" }, avatar, bubble));
+    }
   };
   const photos = [];
   let stick = true; // a conversa está no fim (as fotos que chegarem mantêm o fim à vista)

@@ -261,7 +261,7 @@ select.input { appearance: none; padding-right: 40px; background-image: url("dat
 
 /* ---------- Área do cliente e conversa ---------- */
 
-.account { padding: clamp(32px, 5vw, 56px) 0 80px; display: grid; gap: 28px; }
+.account { padding-block: clamp(32px, 5vw, 56px) 80px; display: grid; gap: 28px; } /* sem apagar a margem lateral do .wrap */
 .account__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
 .account__head h1 { font-size: clamp(30px, 4vw, 44px); }
 .quote-list { display: grid; gap: 12px; }
@@ -422,7 +422,7 @@ dialog.modal::backdrop { background: rgba(32, 12, 10, 0.55); }
   .lightbox__nav { top: auto; bottom: 16px; transform: none; }
   .bubble { max-width: 88%; }
   .chat { height: calc(100dvh - 110px); }
-  .account { padding-top: 16px; }
+  .account { padding-block-start: 16px; }
   .chat__hint { display: none; }
   .image-field { grid-template-columns: minmax(0, 1fr); }
   .admin-event { grid-template-columns: 84px minmax(0, 1fr); }
@@ -545,6 +545,12 @@ h1 em, h2 em, .hero__title em { font-family: var(--display); font-weight: 400; c
 .featured .card:not(.card--wide) .card__img img { aspect-ratio: 16 / 10; }
 
 .masonry { column-count: 3; column-gap: 22px; }
+/* Portfólio: grade que se lê em linhas (o evento mais recente é o primeiro, à esquerda). */
+.event-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.event-grid .card { margin: 0; }
+.event-grid > .empty { grid-column: 1 / -1; }
+@media (max-width: 900px) { .event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+@media (max-width: 560px) { .event-grid { grid-template-columns: minmax(0, 1fr); } }
 .masonry > .empty { column-span: all; }
 .masonry .card:nth-child(3n+2) .card__img img { aspect-ratio: 4 / 5; }
 .masonry .card:nth-child(5n+3) .card__img img { aspect-ratio: 1 / 1; }
@@ -939,7 +945,7 @@ dialog.modal--sheet .tiles { grid-template-columns: repeat(auto-fill, minmax(120
 .occasion::after { background: linear-gradient(180deg, rgba(30, 11, 9, 0.05) 20%, rgba(30, 11, 9, 0.88) 100%); }
 
 /* Rótulo do tipo de festa legível sobre qualquer foto. */
-.card__overlay { padding-top: 80px; background: linear-gradient(180deg, rgba(30, 11, 9, 0) 0%, rgba(30, 11, 9, 0.55) 35%, rgba(30, 11, 9, 0.92) 100%); }
+.card__overlay { padding-top: 80px; background: linear-gradient(180deg, rgba(30, 11, 9, 0) 0%, rgba(30, 11, 9, 0.3) 40%, rgba(30, 11, 9, 0.9) 100%); }
 .card__type { color: #f6cfa9; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55); }
 .card__title, .card__meta { text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45); }
 
@@ -1010,3 +1016,44 @@ body:has(.push-invite) .wa-float, body:has(dialog[open]) .wa-float { display: no
 .list-editor { display: grid; gap: 14px; }
 .list-editor__row { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--bg); display: grid; gap: 10px; min-width: 0; }
 .list-editor__tools { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* ---------- Ajustes de layout no celular ---------- */
+@media (max-width: 600px) {
+  /* Filtros do portfólio numa faixa só, que desliza para o lado. */
+  .chips:not(.chips--choice) { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: var(--gutter); margin-inline: calc(-1 * var(--gutter)); padding: 2px var(--gutter) 6px; scrollbar-width: none; }
+  .chips:not(.chips--choice)::-webkit-scrollbar { display: none; }
+  .chips:not(.chips--choice) .chip { flex: none; scroll-snap-align: start; }
+  /* Fotos do evento em duas colunas. */
+  .masonry--photos { column-count: 2; column-gap: 10px; }
+  .masonry--photos .photo { margin-bottom: 10px; }
+  /* Tipos de festa do pedido: cartões compactos em três colunas. */
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .tile { padding: 12px 4px; font-size: 13px; gap: 6px; }
+  .tile__icon { font-size: 22px; }
+}
+@media (max-width: 900px) {
+  /* Pedido de orçamento: sem a faixa de foto no topo, o formulário aparece logo. */
+  .split--form .split__aside { display: none; }
+  .admin { align-content: start; } /* sem o vão entre o menu e o conteúdo */
+  /* Painel: menu em grade, todas as opções à vista. */
+  .admin__side { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; position: static; overflow: visible; padding: 12px var(--gutter); }
+  .admin__side a { justify-content: center; text-align: center; padding: 9px 6px; font-size: 13.5px; white-space: normal; border: 1px solid var(--line); background: var(--paper); }
+}
+
+/* Notificações em uma linha discreta quando já estão resolvidas neste aparelho. */
+.push-card--compact { grid-template-columns: auto minmax(0, 1fr); align-items: center; padding: 12px 16px; background: var(--paper); }
+.push-card--compact .push-card__icon { width: 34px; height: 34px; }
+.push-card--compact .push-card__icon svg { width: 17px; height: 17px; }
+.push-card--compact h2 { display: none; }
+.push-card--compact .push-card__body { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 14px; }
+@media (max-width: 600px) { .push-card--compact { grid-template-columns: auto minmax(0, 1fr); } .push-card--compact .push-card__body { grid-template-columns: minmax(0, 1fr); } }
+
+/* Conversa: foto (ou inicial) de quem escreveu, ao lado das mensagens recebidas. */
+.msg { display: flex; align-items: flex-end; gap: 8px; align-self: flex-start; max-width: min(82%, 600px); }
+.msg .bubble { max-width: 100%; }
+.msg__avatar { flex: none; width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--copper-light); display: grid; place-items: center; background: var(--accent); color: #fff; font: 500 15px var(--display); }
+@media (max-width: 600px) { .msg { max-width: 92%; } }
+
+/* Painel: pedidos novos saltam aos olhos. */
+.quote-item--new { border-color: var(--accent); border-left-width: 4px; background: linear-gradient(90deg, var(--accent-soft), var(--paper) 60%); }
+.quote-item--new .quote-item__title { font-weight: 700; }
