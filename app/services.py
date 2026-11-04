@@ -1,14 +1,15 @@
 """Regras que mais de uma rota usa: conteúdo do site e limpeza de fotos sem uso."""
 
 from collections.abc import Iterable
+from datetime import timedelta
 
 from fastapi import HTTPException, UploadFile, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.images import InvalidImage, process_upload
-from app.models import BioPhoto, EventPhoto, Image, SiteContent
+from app.models import BioPhoto, EventPhoto, Image, SiteContent, utcnow
 
 SITE_ID = 1
 
@@ -76,3 +77,24 @@ async def store_upload(
     db.add(image)
     db.flush()
     return image
+
+
+def delete_orphan_images(db: Session, older_than: timedelta = timedelta(days=1)) -> int:
+    """Fotos enviadas no painel que nunca chegaram ao site (ex.: evento cancelado).
+
+    Só as públicas e com mais de um dia: quem está editando agora não perde nada.
+    """
+    site = db.get(SiteContent, SITE_ID)
+    fields = (site.hero_image_id, site.owner_image_id, site.history_image_id) if site else ()
+    on_site = [i for i in fields if i]
+    used = or_(
+        Image.id.in_(select(BioPhoto.image_id)),
+        Image.id.in_(select(EventPhoto.image_id)),
+        Image.id.in_(on_site),
+    )
+    result = db.execute(
+        delete(Image).where(
+            Image.access_key.is_(None), Image.created_at < utcnow() - older_than, ~used
+        )
+    )
+    return result.rowcount or 0

@@ -214,3 +214,47 @@ def test_client_account_with_the_owner_email_does_not_keep_its_password(settings
     with restart(settings) as again:
         assert login(again, settings.owner_email, "senha-do-intruso").status_code == 401
         assert login(again, settings.owner_email, "senha-forte-123").status_code == 200
+
+
+def test_security_headers_and_small_routes(settings):
+    production = Settings(**{**settings.__dict__, "environment": "production"})
+    with TestClient(create_app(production)) as client:
+        response = client.get("/")
+        csp = response.headers["content-security-policy"]
+        assert "'unsafe-inline'" not in csp.split("script-src")[1].split(";")[0]
+        assert "object-src 'none'" in csp
+        assert response.headers["strict-transport-security"].startswith("max-age=")
+        assert "camera=()" in response.headers["permissions-policy"]
+        assert response.headers["cross-origin-opener-policy"] == "same-origin"
+        assert client.get("/robots.txt").text.startswith("User-agent: *")
+        icon = client.get("/favicon.ico", follow_redirects=False)
+        assert icon.status_code == 301
+        assert client.get("/static/seguranca.js").status_code == 200
+
+
+def test_huge_uploads_are_refused_before_reading(client, owner):
+    response = client.post(
+        "/admin/images",
+        content=b"x",
+        headers={**owner, "Content-Length": str(50 * 1024 * 1024), "Content-Type": "image/png"},
+    )
+    assert response.status_code == 413
+
+
+def test_orphan_photos_are_cleaned_on_restart(settings, client, owner, api):
+    from datetime import timedelta
+
+    from app.models import Image, utcnow
+
+    used = api.image(owner)
+    orphan = api.image(owner)
+    fresh = api.image(owner)
+    client.patch("/admin/site", json={"hero_image_id": used}, headers=owner)
+    factory = client.app.state.session_factory
+    with factory.begin() as db:
+        for image_id in (used, orphan):
+            db.get(Image, image_id).created_at = utcnow() - timedelta(days=2)
+    with TestClient(create_app(settings)) as again:
+        assert again.get(f"/media/{used}").status_code == 200
+        assert again.get(f"/media/{orphan}").status_code == 404
+        assert again.get(f"/media/{fresh}").status_code == 200  # pode estar sendo editada

@@ -210,3 +210,24 @@ def test_conversation_photo_rules(api, client, ana, owner):
     image_id = int(sent["image_url"].split("?")[0].rsplit("/", 1)[1])
     response = client.patch("/admin/site", json={"hero_image_id": image_id}, headers=owner)
     assert response.status_code in (404, 422)
+
+
+def test_clients_cannot_flood_quotes_or_messages(api, ana, owner):
+    for _ in range(5):
+        quote = api.quote(ana)
+    response = api.client.post(
+        "/quotes",
+        json={
+            "event_type": "Casamento",
+            "event_date": "2030-03-20",
+            "guests": 10,
+            "location": "Salão",
+        },
+        headers=ana,
+    )
+    assert response.status_code == 429
+    for n in range(30):
+        api.say(ana, quote["id"], f"oi {n}")
+    flood = api.client.post(f"/quotes/{quote['id']}/messages", json={"body": "mais"}, headers=ana)
+    assert flood.status_code == 429
+    api.say(owner, quote["id"], "A administração responde sem limite")

@@ -22,9 +22,20 @@ EMAIL_TAKEN = "Já existe uma conta com este e-mail. Use a opção Entrar."
     response_model=UserOut,
     status_code=status.HTTP_201_CREATED,
     summary="Cria a conta de um cliente",
-    responses={409: {"model": ErrorResponse, "description": "E-mail já cadastrado."}},
+    responses={
+        409: {"model": ErrorResponse, "description": "E-mail já cadastrado."},
+        429: {"model": ErrorResponse, "description": "Muitos cadastros seguidos."},
+    },
 )
-def register(data: UserCreate, db: SessionDep, settings: SettingsDep) -> User:
+def register(data: UserCreate, request: Request, db: SessionDep, settings: SettingsDep) -> User:
+    limiter = request.app.state.register_limiter
+    key = f"cadastro|{client_ip(request) or '-'}"
+    if limiter.retry_after(key) is not None:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Muitas contas criadas a partir desta conexão. Tente de novo mais tarde.",
+        )
+    limiter.register_failure(key)  # aqui conta cada cadastro, não só os que falham
     if db.scalar(select(User.id).where(User.email == data.email)) is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, EMAIL_TAKEN)
     user = User(

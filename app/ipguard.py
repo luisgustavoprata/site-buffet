@@ -93,7 +93,8 @@ class IntervalSet:
 def _read_lines(source: str) -> list[str]:
     if source.startswith("https://"):
         request = urllib.request.Request(source, headers={"User-Agent": "site-buffet/1.0"})
-        with urllib.request.urlopen(request, timeout=30) as response:
+        # Só chega aqui endereço https:// (conferido acima).
+        with urllib.request.urlopen(request, timeout=30) as response:  # nosec B310
             return response.read().decode().splitlines()
     return Path(source).read_text().splitlines()
 

@@ -22,6 +22,21 @@ jobs:
       - run: ruff format --check .
       - run: pytest
 
+  seguranca:
+    name: Segurança (bibliotecas e código)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Bibliotecas com falhas conhecidas
+        run: pip-audit -r requirements.txt
+      - name: Padrões perigosos no código
+        run: bandit -q -r app -ll
+
   postgres:
     name: Testes com PostgreSQL 16
     runs-on: ubuntu-latest

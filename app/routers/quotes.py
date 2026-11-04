@@ -6,6 +6,7 @@ em qualquer hospedagem, inclusive no plano gratuito do Render.
 """
 
 import secrets
+from datetime import timedelta
 from typing import Annotated
 
 from fastapi import (
@@ -42,6 +43,16 @@ from app.services import store_upload
 router = APIRouter(tags=["Orçamentos"])
 
 NOT_FOUND = {404: {"model": ErrorResponse, "description": "Pedido não encontrado."}}
+
+# Limites para o cliente (a administração não tem): evitam encher o painel de spam.
+QUOTES_PER_DAY = 5
+MESSAGES_PER_WINDOW = 30
+MESSAGE_WINDOW = timedelta(minutes=10)
+
+
+def _too_many(db: Session, query, limit: int, message: str) -> None:
+    if (db.scalar(query) or 0) >= limit:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, message)
 
 
 def _unread_filter(user: User):
@@ -115,6 +126,14 @@ def create_quote(
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT, "A data do evento já passou. Confira a data."
         )
+    _too_many(
+        db,
+        select(func.count(Quote.id)).where(
+            Quote.client_id == user.id, Quote.created_at >= utcnow() - timedelta(days=1)
+        ),
+        QUOTES_PER_DAY,
+        "Você já enviou vários pedidos hoje. Continue a conversa nos pedidos que já abriu.",
+    )
     quote = Quote(client_id=user.id, **data.model_dump())
     db.add(quote)
     db.flush()
@@ -262,6 +281,15 @@ async def send_photo(
 
 
 def _post(db: Session, quote: Quote, user: User, **fields) -> Message:
+    if not user.is_owner:
+        _too_many(
+            db,
+            select(func.count(Message.id)).where(
+                Message.sender_id == user.id, Message.created_at >= utcnow() - MESSAGE_WINDOW
+            ),
+            MESSAGES_PER_WINDOW,
+            "Muitas mensagens em pouco tempo. Aguarde alguns minutos e tente de novo.",
+        )
     message = Message(quote=quote, sender_id=user.id, from_owner=user.is_owner, **fields)
     db.add(message)
     quote.last_message_at = utcnow()

@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import sessionmaker
@@ -27,6 +27,7 @@ from app.ratelimit import LoginLimiter
 from app.routers import auth, dashboard, portfolio, push, quotes, site
 from app.security import hash_password
 from app.seed import DEMO_CLIENT, DEMO_OWNER, ensure_owner, remove_demo_accounts, seed_demo
+from app.services import delete_orphan_images
 
 __version__ = "1.0.0"
 STATIC_DIR = Path(__file__).parent / "static"
@@ -44,20 +45,34 @@ DEMO_NOTE = """
 ou como administração (`{owner}` / `{password}`).
 """
 
-# Só o próprio site carrega scripts; fontes do Google e imagens da própria API.
+# Só o próprio site carrega scripts (mais as bibliotecas da aba Resultados, conferidas por
+# hash); nenhum script escrito dentro da página roda. Fontes do Google, imagens do site.
 CONTENT_SECURITY_POLICY = "; ".join(
     [
         "default-src 'self'",
-        "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+        "script-src 'self' https://cdn.jsdelivr.net https://cdn.sheetjs.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "img-src 'self' data: https://fastapi.tiangolo.com",
+        "img-src 'self' data:",
         "connect-src 'self'",
+        "object-src 'none'",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",
     ]
 )
+# A documentação da API (só fora do site de verdade) usa o Swagger, que precisa de mais.
+DOCS_CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+        "img-src 'self' data: https://fastapi.tiangolo.com",
+        "frame-ancestors 'none'",
+    ]
+)
+PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+MAX_BODY_BYTES = 12 * 1024 * 1024  # fotos de até 10 MB, com folga para o resto do formulário
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -75,6 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 seed_demo(db, get_today(settings), settings.password_iterations)
             else:
                 remove_demo_accounts(db, settings)
+            delete_orphan_images(db)  # o servidor reinicia com frequência no plano gratuito
         tasks = []
         if settings.push_scheduler:
             tasks.append(asyncio.create_task(push_loop()))
@@ -142,6 +158,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.login_limiter = LoginLimiter(
         settings.login_max_attempts, settings.login_window_seconds
     )
+    app.state.register_limiter = LoginLimiter(5, 3600)  # contas novas por conexão, por hora
     app.state.ipguard = IpGuard(settings.secret_key)
     app.state.ipguard.load_bundled()  # cópia da lista do Brasil, até baixar a atualizada
     app.state.push_sender = webpush.send  # os testes trocam por um envio de mentira
@@ -149,7 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # ---------- Barreira de segurança por IP ----------
 
-    open_paths = ("/health", "/sw.js", "/manifest.webmanifest", "/favicon.ico")
+    open_paths = ("/health", "/sw.js", "/manifest.webmanifest", "/favicon.ico", "/robots.txt")
     sensitive_paths = ("/auth/token", "/auth/register")
 
     def wants_page(request: Request) -> bool:
@@ -199,14 +216,39 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     # Registrado depois da barreira: vale também para a página de verificação.
+    production = settings.environment == "production"
+    docs_paths = ("/docs", "/redoc")
+
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
         response = await call_next(request)
+        csp = (
+            DOCS_CONTENT_SECURITY_POLICY
+            if request.url.path.startswith(docs_paths)
+            else CONTENT_SECURITY_POLICY
+        )
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("X-Frame-Options", "DENY")
-        response.headers.setdefault("Content-Security-Policy", CONTENT_SECURITY_POLICY)
+        response.headers.setdefault("Content-Security-Policy", csp)
+        response.headers.setdefault("Permissions-Policy", PERMISSIONS_POLICY)
+        response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        if production:
+            # O navegador passa a usar só HTTPS neste endereço, mesmo se alguém digitar http://.
+            response.headers.setdefault(
+                "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+            )
         return response
+
+    # Registrado por último, roda primeiro: recusa envios grandes antes de ler o corpo.
+    @app.middleware("http")
+    async def body_limit(request: Request, call_next):
+        length = request.headers.get("content-length", "")
+        if length.isdigit() and int(length) > MAX_BODY_BYTES:
+            return JSONResponse(
+                {"detail": "Envio grande demais. Fotos de até 10 MB."}, status_code=413
+            )
+        return await call_next(request)
 
     class ChallengeAnswer(BaseModel):
         token: str = Field(max_length=600)
@@ -260,6 +302,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def manifest() -> FileResponse:
         return FileResponse(
             STATIC_DIR / "manifest.webmanifest", media_type="application/manifest+json"
+        )
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    def favicon() -> RedirectResponse:
+        return RedirectResponse("/static/favicon.png", status_code=301)
+
+    @app.get("/robots.txt", include_in_schema=False)
+    def robots() -> PlainTextResponse:
+        # O site todo pode aparecer no Google; as rotas da API não têm o que mostrar.
+        return PlainTextResponse(
+            "User-agent: *\nAllow: /$\nAllow: /static/\nAllow: /media/\nDisallow: /\n"
         )
 
     @app.get("/", include_in_schema=False)

@@ -132,16 +132,26 @@ function parseBuffet(S) {
 }
 
 
+// Versões fixas e conferidas por hash (integrity): se o arquivo da CDN for trocado, o
+// navegador recusa. Ao atualizar uma versão, gere o hash novo (veja o README).
 const RESULTS_LIBS = {
-  xlsx: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
-  chart: "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js",
+  xlsx: {
+    src: "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js",
+    integrity: "sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT",
+  },
+  chart: {
+    src: "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js",
+    integrity: "sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG",
+  },
 };
 const loadedScripts = {};
-function loadScript(src) {
+function loadScript({ src, integrity }) {
   if (!loadedScripts[src]) {
     loadedScripts[src] = new Promise((resolve, reject) => {
       const el = document.createElement("script");
       el.src = src;
+      el.integrity = integrity;
+      el.crossOrigin = "anonymous";
       el.onload = resolve;
       el.onerror = () => { delete loadedScripts[src]; reject(new Error("Não foi possível carregar os gráficos. Confira a internet e recarregue.")); };
       document.head.append(el);

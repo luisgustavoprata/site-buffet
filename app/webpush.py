@@ -154,7 +154,8 @@ def send(device: Device, payload: dict, vapid: Vapid, ttl: int = 12 * 3600) -> i
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:
+        # Só endereços https de serviços de push conhecidos (is_push_service, acima).
+        with urllib.request.urlopen(request, timeout=10) as response:  # nosec B310
             return response.status
     except urllib.error.HTTPError as exc:
         return exc.code

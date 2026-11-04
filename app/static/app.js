@@ -446,10 +446,10 @@ function header({ over = false } = {}) {
   if (state.user) {
     const badge = h("span", { class: "badge", "data-unread": true });
     paintBadge(badge);
-    account = h("a", { class: "account-link", href: isOwner() ? "#/painel" : "#/conta" },
+    account = h("a", { class: "account-link", href: isOwner() ? "#/painel" : "#/conta", "aria-label": isOwner() ? "Painel" : "Minha conta" },
       icon("user"), h("span", null, isOwner() ? "Painel" : "Minha conta"), badge);
   } else {
-    account = h("a", { class: "account-link", href: "#/entrar" }, icon("user"), h("span", null, "Entrar"));
+    account = h("a", { class: "account-link", href: "#/entrar", "aria-label": "Entrar" }, icon("user"), h("span", null, "Entrar"));
   }
 
   fill(bar, h("div", { class: "wrap topbar__inner" },
@@ -1266,7 +1266,16 @@ function renderAuth(mode, query) {
     const v = formValues(form);
     submitting(form, async () => {
       if (!isLogin) await api.post("/auth/register", { name: v.name, email: v.email, phone: v.phone, city: v.city, password: v.password });
-      const user = await session.login(v.email, v.password);
+      let user;
+      try {
+        user = await session.login(v.email, v.password);
+      } catch (err) {
+        if (isLogin) throw err;
+        // A conta já foi criada: tentar "criar" de novo diria que o e-mail já existe.
+        toast("Conta criada! Agora entre com o seu e-mail e senha.");
+        go(`/entrar${suffix}`);
+        return;
+      }
       toast(isLogin ? `Olá, ${user.name.split(" ")[0]}!` : "Conta criada. Bem-vindo(a)!");
       afterLogin(user, back);
     });
@@ -1860,7 +1869,11 @@ async function chatView(quoteId, { back, onStatus } = {}) {
   });
 
   const wrapper = h("div", { style: "display:grid;gap:14px;min-width:0" });
-  if (owner) wrapper.append(clientCard(quote.client));
+  if (owner) {
+    // No celular os dados ficam recolhidos: a conversa aparece logo, sem rolar a tela.
+    wrapper.append(h("details", { class: "client-details", open: matchMedia("(min-width: 900px)").matches },
+      h("summary", null, `Dados do cliente · ${quote.client.name}`), clientCard(quote.client)));
+  }
   wrapper.append(chat);
   return wrapper;
 }
@@ -2093,9 +2106,15 @@ function eventEditor(event, onSaved) {
         thumbs,
         uploader({
           onFiles: async (files, busy) => {
-            const ids = await uploadFiles(files, (n, total) => busy(`Enviando ${n} de ${total}…`));
-            photos.push(...ids);
-            drawThumbs();
+            const submit = form.querySelector('[type="submit"]');
+            submit.disabled = true; // publicar agora deixaria de fora as fotos ainda subindo
+            try {
+              const ids = await uploadFiles(files, (n, total) => busy(`Enviando ${n} de ${total}…`));
+              photos.push(...ids);
+              drawThumbs();
+            } finally {
+              submit.disabled = false;
+            }
           },
         }),
         h("p", { class: "field__error", "data-error-for": "image_ids" })),

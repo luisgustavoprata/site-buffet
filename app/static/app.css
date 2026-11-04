@@ -296,6 +296,8 @@ select.input { appearance: none; padding-right: 40px; background-image: url("dat
 .client-card dt { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--olive); }
 .client-card dd { margin: 2px 0 0; color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
 .client-card a { color: inherit; }
+.client-details > summary { cursor: pointer; padding: 10px 4px; font-weight: 600; font-size: 14px; color: var(--olive); }
+.client-details[open] > summary { padding-bottom: 8px; }
 .placeholder { display: grid; place-items: center; min-height: 360px; border: 1.5px dashed var(--line-strong); border-radius: var(--radius); color: var(--muted); text-align: center; padding: 24px; }
 
 .box { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: clamp(18px, 3vw, 28px); display: grid; gap: 18px; }
@@ -384,6 +386,8 @@ dialog.modal::backdrop { background: rgba(32, 12, 10, 0.55); }
   .topbar__inner { gap: 12px; min-height: 64px; }
   .admin__side { top: 64px; }
   .account-link span:not(.badge) { display: none; }
+  .account-link { min-width: 44px; min-height: 44px; justify-content: center; } /* alvo de toque confortável */
+  .toasts { top: 72px; bottom: auto; } /* no celular o aviso não cobre a caixa de mensagem */
   .lightbox__stage { padding: 0 8px; }
   .lightbox__nav { top: auto; bottom: 16px; transform: none; }
   .bubble { max-width: 88%; }

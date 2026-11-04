@@ -117,3 +117,9 @@ def test_guessing_the_current_password_is_limited(client, ana):
         headers=ana,
     )
     assert response.status_code == 429
+
+
+def test_many_accounts_from_one_connection_are_limited(api):
+    for n in range(5):
+        assert api.register(email=f"pessoa{n}@exemplo.com").status_code == 201
+    assert api.register(email="pessoa9@exemplo.com").status_code == 429
