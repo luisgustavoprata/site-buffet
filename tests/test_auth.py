@@ -72,3 +72,48 @@ def test_update_profile(api, ana, client):
 def test_bad_token_returns_401(client):
     response = client.get("/auth/me", headers={"Authorization": "Bearer nada"})
     assert response.status_code == 401
+
+
+def test_change_password_logs_out_other_devices(api, client):
+    other_device = api.headers("ana@exemplo.com")
+    this_device = api.token_headers("ana@exemplo.com")
+    wrong = client.post(
+        "/auth/me/password",
+        json={"current_password": "errada", "new_password": "nova-senha-123"},
+        headers=this_device,
+    )
+    assert wrong.status_code == 400
+    response = client.post(
+        "/auth/me/password",
+        json={"current_password": PASSWORD, "new_password": "nova-senha-123"},
+        headers=this_device,
+    )
+    assert response.status_code == 200, response.json()
+    fresh = {"Authorization": f"Bearer {response.json()['access_token']}"}
+    assert client.get("/auth/me", headers=fresh).status_code == 200
+    assert client.get("/auth/me", headers=other_device).status_code == 401
+    assert client.get("/auth/me", headers=this_device).status_code == 401
+    assert api.login("ana@exemplo.com").status_code == 401
+    assert api.login("ana@exemplo.com", "nova-senha-123").status_code == 200
+
+
+def test_change_password_needs_a_strong_new_one(api, client, ana):
+    response = client.post(
+        "/auth/me/password", json={"current_password": PASSWORD, "new_password": "123"}, headers=ana
+    )
+    assert response.status_code == 422
+
+
+def test_guessing_the_current_password_is_limited(client, ana):
+    for _ in range(5):
+        client.post(
+            "/auth/me/password",
+            json={"current_password": "chute", "new_password": "nova-senha-123"},
+            headers=ana,
+        )
+    response = client.post(
+        "/auth/me/password",
+        json={"current_password": PASSWORD, "new_password": "nova-senha-123"},
+        headers=ana,
+    )
+    assert response.status_code == 429

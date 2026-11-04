@@ -29,7 +29,7 @@ from app.models import (
     SiteContent,
     User,
 )
-from app.security import hash_password
+from app.security import hash_password, verify_password
 from app.services import SITE_ID
 
 DEMO_DIR = Path(__file__).parent / "demo"
@@ -42,16 +42,34 @@ def ensure_owner(db: Session, settings: Settings) -> None:
         return
     user = db.scalar(select(User).where(User.email == settings.owner_email))
     if user is None:
+        hashed = hash_password(settings.owner_password, settings.password_iterations)
         db.add(
             User(
                 name=settings.owner_name,
                 email=settings.owner_email,
                 role=Role.OWNER,
-                password_hash=hash_password(settings.owner_password, settings.password_iterations),
+                password_hash=hashed,
+                owner_env_hash=hashed,
             )
         )
-    elif user.role != Role.OWNER:
+    else:
+        if user.owner_env_hash is None or not verify_password(
+            settings.owner_password, user.owner_env_hash
+        ):
+            # OWNER_PASSWORD novo (ou uma conta de cliente com este e-mail): a senha passa a
+            # ser a do Render, nunca a que alguém escolheu ao se cadastrar.
+            hashed = hash_password(settings.owner_password, settings.password_iterations)
+            user.password_hash = hashed
+            user.owner_env_hash = hashed
         user.role = Role.OWNER
+    # Trocou o OWNER_EMAIL: a conta antiga deixa de ser administração.
+    others = select(User).where(
+        User.role == Role.OWNER,
+        User.email != settings.owner_email,
+        User.email != DEMO_OWNER[0],  # a demonstração cuida da conta de exemplo
+    )
+    for other in db.scalars(others).all():
+        other.role = Role.CLIENT
 
 
 def remove_demo_accounts(db: Session, settings: Settings) -> None:

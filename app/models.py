@@ -50,6 +50,9 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(20))
     city: Mapped[str | None] = mapped_column(String(80))
     password_hash: Mapped[str] = mapped_column(String(255))
+    # Conta da administração: hash do OWNER_PASSWORD já aplicado. Se o Render mudar a senha,
+    # ela passa a valer (recuperação de senha esquecida); se não mudar, a do painel continua.
+    owner_env_hash: Mapped[str | None] = mapped_column(String(255), default=None)
     role: Mapped[Role] = mapped_column(
         Enum(Role, native_enum=False, length=10), default=Role.CLIENT
     )

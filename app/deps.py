@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.models import User
-from app.security import read_access_token
+from app.security import password_stamp, read_access_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 optional_oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
@@ -53,11 +53,21 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 TodayDep = Annotated[date, Depends(get_today)]
 
 
+def token_user(db: Session, token: str, settings: Settings) -> User | None:
+    """O dono do token, se ele ainda vale (a senha não foi trocada depois de entrar)."""
+    data = read_access_token(token, settings.secret_key)
+    if data is None:
+        return None
+    user = db.get(User, data[0])
+    if user is None or data[1] != password_stamp(user.password_hash):
+        return None
+    return user
+
+
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], db: SessionDep, settings: SettingsDep
 ) -> User:
-    user_id = read_access_token(token, settings.secret_key)
-    user = db.get(User, user_id) if user_id is not None else None
+    user = token_user(db, token, settings)
     if user is None:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
@@ -76,8 +86,7 @@ def get_optional_user(
     """Páginas públicas que mudam um pouco para quem entrou (ex.: o coração já marcado)."""
     if not token:
         return None
-    user_id = read_access_token(token, settings.secret_key)
-    return db.get(User, user_id) if user_id is not None else None
+    return token_user(db, token, settings)
 
 
 MaybeUser = Annotated[User | None, Depends(get_optional_user)]

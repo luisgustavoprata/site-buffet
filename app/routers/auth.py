@@ -5,11 +5,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from app.config import Settings
 from app.deps import CurrentUser, SessionDep, SettingsDep, client_ip
 from app.ipguard import parse_ip
 from app.models import Role, User
-from app.schemas import ErrorResponse, Token, UserCreate, UserOut, UserUpdate
-from app.security import create_access_token, hash_password, verify_password
+from app.schemas import ErrorResponse, PasswordChange, Token, UserCreate, UserOut, UserUpdate
+from app.security import create_access_token, hash_password, password_stamp, verify_password
 
 router = APIRouter(prefix="/auth", tags=["Conta"])
 
@@ -85,7 +86,12 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
     limiter.reset(key)
-    token = create_access_token(user.id, settings.secret_key, settings.token_minutes)
+    return new_token(user, settings)
+
+
+def new_token(user: User, settings: Settings) -> Token:
+    stamp = password_stamp(user.password_hash)
+    token = create_access_token(user.id, settings.secret_key, settings.token_minutes, stamp)
     return Token(access_token=token, expires_in=settings.token_minutes * 60)
 
 
@@ -101,3 +107,32 @@ def update_me(data: UserUpdate, user: CurrentUser) -> User:
             continue
         setattr(user, field, value)
     return user
+
+
+@router.post(
+    "/me/password",
+    response_model=Token,
+    summary="Troca a senha (os outros aparelhos saem da conta)",
+    responses={
+        400: {"model": ErrorResponse, "description": "Senha atual incorreta."},
+        429: {"model": ErrorResponse, "description": "Muitas tentativas seguidas."},
+    },
+)
+def change_password(
+    data: PasswordChange, user: CurrentUser, request: Request, settings: SettingsDep
+) -> Token:
+    limiter = request.app.state.login_limiter
+    key = f"senha|{user.id}"  # com um token roubado, ninguém fica chutando a senha atual
+    wait = limiter.retry_after(key)
+    if wait is not None:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            f"Muitas tentativas. Tente de novo em {wait} segundos.",
+            headers={"Retry-After": str(wait)},
+        )
+    if not verify_password(data.current_password, user.password_hash):
+        limiter.register_failure(key)
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "A senha atual não confere.")
+    limiter.reset(key)
+    user.password_hash = hash_password(data.new_password, settings.password_iterations)
+    return new_token(user, settings)  # este aparelho continua conectado

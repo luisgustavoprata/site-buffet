@@ -151,3 +151,66 @@ def test_production_hides_the_api_docs(settings):
         for path in ("/docs", "/redoc", "/openapi.json"):
             assert client.get(path).status_code == 404
         assert client.get("/").status_code == 200
+
+
+def restart(settings, **changes) -> TestClient:
+    return TestClient(create_app(Settings(**{**settings.__dict__, **changes})))
+
+
+def login(client, email, password):
+    return client.post("/auth/token", data={"username": email, "password": password})
+
+
+def test_owner_password_changed_in_the_panel_survives_a_restart(settings, client, owner):
+    response = client.post(
+        "/auth/me/password",
+        json={"current_password": "senha-forte-123", "new_password": "do-painel-123"},
+        headers=owner,
+    )
+    assert response.status_code == 200
+    with restart(settings) as again:  # mesmo OWNER_PASSWORD no Render
+        assert login(again, settings.owner_email, "do-painel-123").status_code == 200
+
+
+def test_new_owner_password_in_render_resets_a_forgotten_one(settings, client, owner):
+    client.post(
+        "/auth/me/password",
+        json={"current_password": "senha-forte-123", "new_password": "esquecida-123"},
+        headers=owner,
+    )
+    with restart(settings, owner_password="nova-do-render") as again:
+        assert login(again, settings.owner_email, "esquecida-123").status_code == 401
+        assert login(again, settings.owner_email, "nova-do-render").status_code == 200
+
+
+def test_new_owner_email_demotes_the_old_owner(settings, client, owner):
+    with restart(settings, owner_email="gracielle@brunoise.com") as again:
+        old = login(again, settings.owner_email, "senha-forte-123")
+        assert old.status_code == 200
+        me = again.get(
+            "/auth/me", headers={"Authorization": f"Bearer {old.json()['access_token']}"}
+        )
+        assert me.json()["role"] == "client"
+        new = login(again, "gracielle@brunoise.com", "senha-forte-123")
+        assert new.status_code == 200
+
+
+def test_client_account_with_the_owner_email_does_not_keep_its_password(settings):
+    engine = make_engine(settings.database_url)
+    Base.metadata.drop_all(engine)
+    engine.dispose()
+    no_owner = Settings(**{**settings.__dict__, "owner_email": "", "owner_password": ""})
+    with TestClient(create_app(no_owner)) as early:
+        early.post(
+            "/auth/register",
+            json={
+                "name": "Alguém",
+                "email": settings.owner_email,
+                "phone": "11987654321",
+                "city": "Rio Verde",
+                "password": "senha-do-intruso",
+            },
+        )
+    with restart(settings) as again:
+        assert login(again, settings.owner_email, "senha-do-intruso").status_code == 401
+        assert login(again, settings.owner_email, "senha-forte-123").status_code == 200

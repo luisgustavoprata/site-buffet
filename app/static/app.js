@@ -1538,6 +1538,7 @@ async function renderAccount(openId) {
       h("div", null, h("p", { class: "eyebrow" }, "Minha conta"), h("h1", null, `Olá, ${u.name.split(" ")[0]}`)),
       h("div", { style: "display:flex;gap:10px;flex-wrap:wrap" },
         h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: editProfile }, "Meus dados"),
+        h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: changePassword }, "Trocar senha"),
         h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: () => session.logout() }, "Sair"),
         h("a", { class: "btn btn--primary btn--small", href: "#/orcamento" }, "Novo pedido"))),
     pushCard(),
@@ -1569,6 +1570,36 @@ function editProfile() {
         state.user = await api.patch("/auth/me", formValues(form));
         close();
         toast("Dados atualizados.");
+      });
+    });
+    return form;
+  });
+}
+
+function changePassword() {
+  openModal("Trocar senha", (close) => {
+    const form = h("form", { class: "form", novalidate: true },
+      h("p", { class: "form__error", role: "alert", tabindex: "-1" }),
+      h("input", { type: "email", name: "username", value: state.user.email, autocomplete: "username", hidden: true }),
+      field({ label: "Senha atual", name: "current_password", type: "password", autocomplete: "current-password", required: true }),
+      field({ label: "Nova senha", name: "new_password", type: "password", autocomplete: "new-password", required: true, minlength: 8, hint: "Pelo menos 8 caracteres." }),
+      field({ label: "Repita a nova senha", name: "confirm", type: "password", autocomplete: "new-password", required: true }),
+      h("p", { class: "muted", style: "font-size:14px" }, "Os outros aparelhos em que você entrou vão sair da conta."),
+      h("div", { class: "form__actions" },
+        h("button", { class: "btn btn--ghost", type: "button", onclick: close }, "Cancelar"),
+        h("button", { class: "btn btn--primary", type: "submit" }, "Trocar senha")));
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const { current_password, new_password, confirm } = formValues(form);
+      if (new_password !== confirm) {
+        showErrors(form, { errors: [{ field: "confirm", message: "As duas senhas não são iguais." }] });
+        return;
+      }
+      submitting(form, async () => {
+        const data = await api.post("/auth/me/password", { current_password, new_password });
+        api.token = data.access_token;
+        close();
+        toast("Senha trocada.");
       });
     });
     return form;
@@ -1859,6 +1890,7 @@ async function renderAdmin(tab, openId) {
       h("p", { class: "eyebrow" }, "Painel"),
       ADMIN_TABS.map(([key, label, href]) => h("a", { href, "aria-current": key === tab ? "page" : null }, label, key === "pedidos" && badge)),
       h("a", { href: "#/" }, "Ver o site"),
+      h("a", { href: "#", onclick: (e) => { e.preventDefault(); changePassword(); } }, "Trocar senha"),
       h("a", { href: "#", onclick: (e) => { e.preventDefault(); session.logout(); } }, "Sair")),
     main));
   const views = { pedidos: adminQuotes, resultados: adminResults, portfolio: adminPortfolio, site: adminSite, clientes: adminClients, notificacoes: adminPush };

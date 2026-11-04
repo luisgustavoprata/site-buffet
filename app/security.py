@@ -38,16 +38,28 @@ def verify_password(password: str, stored: str) -> bool:
     return hmac.compare_digest(candidate, base64.b64decode(digest))
 
 
-def create_access_token(user_id: int, secret: str, minutes: int) -> str:
+def password_stamp(password_hash: str) -> str:
+    """Marca da senha atual dentro do token: trocar a senha desconecta os outros aparelhos."""
+    return hashlib.sha256(password_hash.encode()).hexdigest()[:16]
+
+
+def create_access_token(user_id: int, secret: str, minutes: int, stamp: str) -> str:
     now = datetime.now(UTC)
-    payload = {"sub": str(user_id), "iat": now, "exp": now + timedelta(minutes=minutes)}
+    payload = {
+        "sub": str(user_id),
+        "pwd": stamp,
+        "iat": now,
+        "exp": now + timedelta(minutes=minutes),
+    }
     return jwt.encode(payload, secret, algorithm=ALGORITHM)
 
 
-def read_access_token(token: str, secret: str) -> int | None:
-    """Devolve o id do usuário, ou None se o token for inválido ou estiver vencido."""
+def read_access_token(token: str, secret: str) -> tuple[int, str] | None:
+    """Devolve (id do usuário, marca da senha), ou None se o token for inválido ou vencido."""
     try:
-        payload = jwt.decode(token, secret, algorithms=[ALGORITHM], options={"require": ["exp"]})
-        return int(payload["sub"])
+        payload = jwt.decode(
+            token, secret, algorithms=[ALGORITHM], options={"require": ["exp", "pwd"]}
+        )
+        return int(payload["sub"]), str(payload["pwd"])
     except (jwt.PyJWTError, KeyError, ValueError):
         return None

@@ -98,6 +98,11 @@ class UserUpdate(Input):
     city: str | None = Field(default=None, min_length=2, max_length=80)
 
 
+class PasswordChange(Input):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class UserOut(Output):
     id: int
     name: str

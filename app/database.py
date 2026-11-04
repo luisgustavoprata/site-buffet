@@ -33,6 +33,7 @@ def make_engine(url: str) -> Engine:
 NEW_COLUMNS = [
     ("images", "access_key", "VARCHAR(64)"),
     ("messages", "image_id", "INTEGER REFERENCES images(id) ON DELETE SET NULL"),
+    ("users", "owner_env_hash", "VARCHAR(255)"),
 ]
 
 
