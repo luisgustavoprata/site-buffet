@@ -313,8 +313,12 @@ const api = {
       }
       if (response.status === 401 && token && path !== "/auth/token") {
         session.clear();
-        toast("Sua sessão expirou. Entre novamente.", "error");
-        go(`/entrar?volta=${encodeURIComponent(currentPath())}`);
+        if (needsLogin(currentPath())) {
+          toast("Sua sessão expirou. Entre novamente.", "error");
+          go(`/entrar?volta=${encodeURIComponent(currentPath())}`);
+        } else if (state.site) {
+          render(); // página aberta a todos: continua nela, só sem a conta no topo
+        }
       }
       const message = typeof data.detail === "string" ? data.detail
         : response.status === 413 ? "Arquivo grande demais." : "Não foi possível concluir. Tente de novo.";
@@ -409,6 +413,8 @@ setInterval(() => {
 
 const root = () => document.getElementById("root");
 const currentPath = () => location.hash.replace(/^#/, "") || "/";
+/** Páginas que só abrem com a conta (as outras seguem abertas quando o login vence). */
+const needsLogin = (path) => /^\/(conta|painel|orcamento)(\/|\?|$)/.test(path);
 const go = (path) => {
   if (currentPath() === path) render();
   else location.hash = `#${path}`;
@@ -581,7 +587,7 @@ const PUSH_INVITE_KEY = "buffet.push.convite";
 
 /** Convite discreto para ativar, para clientes logados que ainda não decidiram. */
 async function pushInvite() {
-  if (!state.user || isOwner() || document.querySelector(".push-invite") || pushInvite.shown) return;
+  if (!state.user || document.querySelector(".push-invite") || pushInvite.shown) return;
   try {
     const last = Number(localStorage.getItem(PUSH_INVITE_KEY) || 0);
     if (Date.now() - last < 14 * 86400000) return; // "agora não": pergunta de novo em 2 semanas
@@ -603,8 +609,10 @@ async function pushInvite() {
   const card = h("aside", { class: "push-invite", role: "dialog", "aria-label": "Ativar notificações" },
     h("span", { class: "push-invite__icon" }, icon("bell")),
     h("div", null,
-      h("strong", null, "Quer receber novidades?"),
-      h("p", null, "Ideias de festa e fotos novas no seu celular ou computador. Só durante o dia, sem exagero.")),
+      h("strong", null, isOwner() ? "Saber na hora dos pedidos?" : "Quer ser avisado(a) da resposta?"),
+      h("p", null, isOwner()
+        ? "Receba um aviso neste aparelho quando chegar um pedido de orçamento ou uma mensagem de cliente."
+        : "Avisamos no seu celular ou computador quando a resposta do orçamento chegar. E, só durante o dia, ideias de festa e fotos novas.")),
     h("div", { class: "push-invite__actions" },
       h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: later }, "Agora não"), yes));
   yes.addEventListener("click", async () => {
@@ -620,7 +628,7 @@ async function pushInvite() {
   });
   setTimeout(async () => {
     // Confere de novo: nesse meio-tempo a pessoa pode ter ativado ou saído da conta.
-    if (state.user && !isOwner() && (await push.state()) === "off") document.body.append(card);
+    if (state.user && (await push.state()) === "off") document.body.append(card);
   }, 2500);
 }
 
@@ -651,8 +659,8 @@ function pushCard({ owner = false } = {}) {
     const window_ = config ? `das ${config.start_hour}h às ${config.end_hour}h` : "durante o dia";
     const texts = {
       off: owner
-        ? "Ative neste aparelho para ver como as notificações chegam para os clientes."
-        : `Receba ideias de festa, novidades e fotos novas no celular ou no computador. Só ${window_}, sem exagero.`,
+        ? "Ative neste aparelho para saber na hora quando chegar um pedido de orçamento ou uma mensagem de cliente."
+        : `Receba um aviso quando a resposta do seu orçamento chegar. E também ideias de festa e fotos novas, só ${window_}, sem exagero.`,
       on: "Ativadas neste aparelho. ✅",
       denied: "As notificações estão bloqueadas neste navegador. Para liberar, toque no cadeado ao lado do endereço do site e permita as notificações.",
       "ios-install": "No iPhone, as notificações funcionam com o site na Tela de Início: toque em Compartilhar e depois em \"Adicionar à Tela de Início\". Abra pelo novo ícone e ative aqui.",
@@ -1518,6 +1526,7 @@ async function renderAccount(openId) {
   document.title = `Minha conta | ${state.site.business_name}`;
   const area = h("div", { class: "wrap account" }, loading());
   fill(root(), header(), h("main", { id: "conteudo" }, area));
+  pushInvite();
 
   if (openId) {
     const chat = await chatView(openId, { back: "#/conta" });
@@ -1893,6 +1902,7 @@ async function renderAdmin(tab, openId) {
       h("a", { href: "#", onclick: (e) => { e.preventDefault(); changePassword(); } }, "Trocar senha"),
       h("a", { href: "#", onclick: (e) => { e.preventDefault(); session.logout(); } }, "Sair")),
     main));
+  pushInvite();
   const views = { pedidos: adminQuotes, resultados: adminResults, portfolio: adminPortfolio, site: adminSite, clientes: adminClients, notificacoes: adminPush };
   await views[tab](main, openId);
 }
@@ -2274,6 +2284,8 @@ async function adminPush(main) {
       h("div", null, h("p", { class: "eyebrow" }, "Painel"), h("h1", null, "Notificações"))),
     h("p", { class: "muted", style: "max-width:720px" },
       `Os clientes que ativam as notificações recebem ${plural(d.per_day, "mensagem", "mensagens")} por dia, em horários sorteados entre ${d.start_hour}h e ${d.end_hour}h (horário de Brasília). Depois das ${d.end_hour}h nada é enviado.`),
+    h("p", { class: "muted", style: "max-width:720px" },
+      "Os avisos da conversa chegam na hora, a qualquer horário: você recebe quando chega um pedido de orçamento ou uma mensagem de cliente, e o cliente recebe quando você responde."),
     h("div", { class: "push-stats" },
       stat(d.clients, d.clients === 1 ? "cliente com notificações" : "clientes com notificações"),
       stat(d.devices, d.devices === 1 ? "aparelho" : "aparelhos"),

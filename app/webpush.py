@@ -133,8 +133,11 @@ def send(device: Device, payload: dict, vapid: Vapid, ttl: int = 12 * 3600) -> i
     """Envia e devolve o código HTTP do serviço de push (201 = aceito; 404/410 = desativado)."""
     if not is_push_service(device.endpoint):
         return 410  # endereço que não é de um serviço de push: tratado como desativado
+    # Avisos da conversa saem com urgência normal; as mensagens programadas, baixa.
+    urgency = payload.get("urgency", "low")
+    content = {k: v for k, v in payload.items() if k != "urgency"}
     body = encrypt(
-        json.dumps(payload, ensure_ascii=False).encode(),
+        json.dumps(content, ensure_ascii=False).encode(),
         unb64url(device.p256dh),
         unb64url(device.auth),
     )
@@ -147,7 +150,7 @@ def send(device: Device, payload: dict, vapid: Vapid, ttl: int = 12 * 3600) -> i
             "Content-Encoding": "aes128gcm",
             "Content-Type": "application/octet-stream",
             "TTL": str(ttl),
-            "Urgency": "low",
+            "Urgency": urgency,
         },
     )
     try:

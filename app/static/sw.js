@@ -16,6 +16,7 @@ self.addEventListener("push", (event) => {
     icon: "/static/icone-192.png",
     badge: "/static/selo-96.png",
     tag: data.tag || "brunoise",
+    renotify: Boolean(data.renotify && data.tag), // mensagem nova na mesma conversa avisa de novo
     lang: "pt-BR",
     data: { url: data.url || "/" },
   }));

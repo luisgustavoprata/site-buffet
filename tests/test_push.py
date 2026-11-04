@@ -184,3 +184,54 @@ def test_messages_fit_a_notification():
     for message in MESSAGES:
         assert len(message.title) <= 50, message.key
         assert len(message.body) <= 120, message.key
+
+
+def test_new_quote_and_messages_alert_the_other_side(api, client, ana, owner, outbox):
+    phone_of_ana = device("https://fcm.googleapis.com/fcm/send/ana")
+    phone_of_owner = device("https://fcm.googleapis.com/fcm/send/dona")
+    assert client.post("/push/devices", json=phone_of_ana, headers=ana).status_code == 201
+    assert client.post("/push/devices", json=phone_of_owner, headers=owner).status_code == 201
+
+    quote = api.quote(ana)
+    endpoint, payload = outbox[-1]
+    assert endpoint.endswith("/dona")
+    assert payload["title"] == "Novo pedido de orçamento: Casamento"
+    assert payload["body"] == "Ana · 20/03/2030 · 120 convidados"
+    assert payload["url"] == f"/#/painel/pedidos/{quote['id']}"
+    assert payload["urgency"] == "normal"
+
+    api.say(ana, quote["id"], "Vocês fazem   mesa de doces?")
+    endpoint, payload = outbox[-1]
+    assert endpoint.endswith("/dona")
+    assert payload["title"] == "Mensagem de Ana"
+    assert payload["body"] == "Vocês fazem mesa de doces?"
+
+    before = len(outbox)
+    api.say(owner, quote["id"], "Fazemos sim! " + "x" * 200)
+    assert len(outbox) == before + 1  # só o cliente: a administração não avisa a si mesma
+    endpoint, payload = outbox[-1]
+    assert endpoint.endswith("/ana")
+    assert payload["title"].endswith("respondeu o seu pedido")
+    assert payload["url"] == f"/#/conta/pedidos/{quote['id']}"
+    assert len(payload["body"]) == 120 and payload["body"].endswith("…")
+
+
+def test_alerts_only_reach_the_client_of_that_quote(api, client, owner, outbox):
+    ana = api.headers("ana@exemplo.com")
+    bia = api.headers("bia@exemplo.com", name="Bia Lima")
+    client.post(
+        "/push/devices", json=device("https://fcm.googleapis.com/fcm/send/bia"), headers=bia
+    )
+    quote = api.quote(ana)
+    api.say(owner, quote["id"], "Olá, Ana!")
+    assert outbox == []  # a Bia não recebe a resposta do pedido da Ana
+
+
+def test_alert_failure_does_not_break_the_message(api, app, ana, owner):
+    def broken_sender(target, payload, vapid):
+        raise OSError("sem internet")
+
+    app.state.push_sender = broken_sender
+    api.client.post("/push/devices", json=device(), headers=owner)
+    quote = api.quote(ana)  # o pedido é salvo mesmo se o aviso falhar
+    assert api.say(ana, quote["id"], "Oi")["body"] == "Oi"

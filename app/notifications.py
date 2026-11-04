@@ -1,8 +1,12 @@
-"""Notificações para os clientes: as mensagens e a programação em horários sorteados.
+"""Notificações: os avisos da conversa e as mensagens programadas para os clientes.
 
-Todo dia o site sorteia `push_per_day` horários dentro da janela (por padrão das 07:00 às
-19:00, horário de Brasília) e, em cada um, envia uma mensagem do catálogo para os aparelhos
-dos clientes que ativaram as notificações. Fora da janela nada é enviado, nem atrasado.
+Avisos da conversa: pedido novo e mensagem do cliente chegam para a administração; a
+resposta da administração chega para o cliente. Saem na hora, a qualquer horário.
+
+Mensagens programadas: todo dia o site sorteia `push_per_day` horários dentro da janela (por
+padrão das 07:00 às 19:00, horário de Brasília) e, em cada um, envia uma mensagem do catálogo
+para os aparelhos dos clientes que ativaram as notificações. Fora da janela nada é enviado,
+nem atrasado.
 """
 
 import logging
@@ -16,7 +20,8 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.models import AppSecret, PushDevice, PushPlan, Role, SiteContent, User, utcnow
+from app.models import AppSecret, PushDevice, PushPlan, Quote, Role, SiteContent, User, utcnow
+from app.models import Message as ChatMessage
 from app.webpush import Device, Vapid
 
 log = logging.getLogger(__name__)
@@ -272,9 +277,19 @@ def deliver(
     db: Session, devices: list[PushDevice], message: Message, vapid: Vapid, sender: Sender
 ) -> int:
     site = db.get(SiteContent, 1)
+    return _push(db, devices, lambda device: render(message, device.user, site), vapid, sender)
+
+
+def _push(
+    db: Session,
+    devices: list[PushDevice],
+    payload_for: Callable[[PushDevice], dict],
+    vapid: Vapid,
+    sender: Sender,
+) -> int:
     sent = 0
     for device in devices:
-        payload = render(message, device.user, site)
+        payload = payload_for(device)
         status = sender(Device(device.endpoint, device.p256dh, device.auth), payload, vapid)
         if status in (404, 410):
             db.delete(device)  # a pessoa desativou ou o navegador trocou o endereço
@@ -339,3 +354,91 @@ def forget_device(db: Session, endpoint: str, user: User) -> None:
     db.execute(
         delete(PushDevice).where(PushDevice.endpoint == endpoint, PushDevice.user_id == user.id)
     )
+
+
+# ---------- Avisos da conversa ----------
+
+
+def _first(name: str | None, fallback: str) -> str:
+    return (name or "").split()[0] if (name or "").strip() else fallback
+
+
+def _preview(text: str, limit: int = 120) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
+def _alert(db: Session, settings: Settings, sender: Sender, users, payload: dict) -> int:
+    devices = list(db.scalars(select(PushDevice).where(users)))
+    if not devices:
+        return 0
+    payload = {**payload, "urgency": "normal", "renotify": True}
+    return _push(db, devices, lambda _device: payload, get_vapid(db, settings), sender)
+
+
+def alert_new_quote(db: Session, settings: Settings, sender: Sender, quote_id: int) -> int:
+    """Pedido de orçamento novo: avisa a administração."""
+    quote = db.get(Quote, quote_id)
+    if quote is None:
+        return 0
+    client = _first(quote.client.name, "Um cliente")
+    when = quote.event_date.strftime("%d/%m/%Y")
+    owners = PushDevice.user_id.in_(select(User.id).where(User.role == Role.OWNER))
+    return _alert(
+        db,
+        settings,
+        sender,
+        owners,
+        {
+            "title": f"Novo pedido de orçamento: {quote.event_type}",
+            "body": f"{client} · {when} · {quote.guests} convidados",
+            "url": f"/#/painel/pedidos/{quote.id}",
+            "tag": f"pedido-{quote.id}",
+        },
+    )
+
+
+def alert_message(db: Session, settings: Settings, sender: Sender, message_id: int) -> int:
+    """Mensagem nova na conversa: avisa o outro lado."""
+    message = db.get(ChatMessage, message_id)
+    if message is None:
+        return 0
+    quote = message.quote
+    text = _preview(message.body) if message.body else "Enviou uma foto."
+    if message.from_owner:
+        site = db.get(SiteContent, 1)
+        chef = _first(site.owner_name if site else "", "O buffet")
+        return _alert(
+            db,
+            settings,
+            sender,
+            PushDevice.user_id == quote.client_id,
+            {
+                "title": f"{chef} respondeu o seu pedido",
+                "body": text,
+                "url": f"/#/conta/pedidos/{quote.id}",
+                "tag": f"pedido-{quote.id}",
+            },
+        )
+    owners = PushDevice.user_id.in_(select(User.id).where(User.role == Role.OWNER))
+    return _alert(
+        db,
+        settings,
+        sender,
+        owners,
+        {
+            "title": f"Mensagem de {_first(quote.client.name, 'um cliente')}",
+            "body": text,
+            "url": f"/#/painel/pedidos/{quote.id}",
+            "tag": f"pedido-{quote.id}",
+        },
+    )
+
+
+def run_alert(app_state, alert: Callable[..., int], target_id: int) -> None:
+    """Roda depois da resposta ao navegador, com uma sessão própria: quem enviou não espera."""
+    try:
+        with app_state.session_factory.begin() as db:
+            alert(db, app_state.settings, app_state.push_sender, target_id)
+    except Exception:
+        log.exception("Falha ao enviar o aviso da conversa")

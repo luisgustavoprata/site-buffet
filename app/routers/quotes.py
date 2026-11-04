@@ -8,12 +8,23 @@ em qualquer hospedagem, inclusive no plano gratuito do Render.
 import secrets
 from typing import Annotated
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from sqlalchemy import and_, func, or_, select, true
 from sqlalchemy.orm import Session
 
 from app.deps import CurrentUser, OwnerUser, SessionDep, SettingsDep, TodayDep
 from app.models import Message, Quote, QuoteStatus, Role, User, utcnow
+from app.notifications import alert_message, alert_new_quote, run_alert
 from app.schemas import (
     ClientSummary,
     ErrorResponse,
@@ -88,7 +99,14 @@ def _summaries(db: Session, quotes: list[Quote], user: User) -> list[QuoteOut]:
     summary="Pede um orçamento (abre a conversa)",
     responses={403: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
 )
-def create_quote(data: QuoteCreate, db: SessionDep, user: CurrentUser, today: TodayDep):
+def create_quote(
+    data: QuoteCreate,
+    db: SessionDep,
+    user: CurrentUser,
+    today: TodayDep,
+    request: Request,
+    tasks: BackgroundTasks,
+):
     if user.role != Role.CLIENT:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, "A administração não pede orçamento para si mesma."
@@ -101,6 +119,8 @@ def create_quote(data: QuoteCreate, db: SessionDep, user: CurrentUser, today: To
     db.add(quote)
     db.flush()
     db.refresh(quote)
+    db.commit()  # o aviso roda numa sessão própria: precisa enxergar o que foi salvo
+    tasks.add_task(run_alert, request.app.state, alert_new_quote, quote.id)
     return QuoteDetail.model_validate(quote)
 
 
@@ -196,9 +216,19 @@ def _mark_read(quote: Quote, user: User, last_id: int | None = None) -> None:
     summary="Envia uma mensagem na conversa",
     responses={**NOT_FOUND, 409: {"model": ErrorResponse}},
 )
-def send_message(quote_id: int, data: MessageCreate, db: SessionDep, user: CurrentUser) -> Message:
+def send_message(
+    quote_id: int,
+    data: MessageCreate,
+    db: SessionDep,
+    user: CurrentUser,
+    request: Request,
+    tasks: BackgroundTasks,
+) -> Message:
     quote = _get_quote(db, quote_id, user)
-    return _post(db, quote, user, body=data.body)
+    message = _post(db, quote, user, body=data.body)
+    db.commit()  # o aviso roda numa sessão própria: precisa enxergar o que foi salvo
+    tasks.add_task(run_alert, request.app.state, alert_message, message.id)
+    return message
 
 
 @router.post(
@@ -219,11 +249,16 @@ async def send_photo(
     db: SessionDep,
     user: CurrentUser,
     settings: SettingsDep,
+    request: Request,
+    tasks: BackgroundTasks,
     caption: Annotated[str, Form(max_length=4000, description="Legenda.")] = "",
 ) -> Message:
     quote = _get_quote(db, quote_id, user)
     image = await store_upload(db, file, settings, access_key=secrets.token_urlsafe(24))
-    return _post(db, quote, user, body=caption.strip(), image=image)
+    message = _post(db, quote, user, body=caption.strip(), image=image)
+    db.commit()  # o aviso roda numa sessão própria: precisa enxergar o que foi salvo
+    tasks.add_task(run_alert, request.app.state, alert_message, message.id)
+    return message
 
 
 def _post(db: Session, quote: Quote, user: User, **fields) -> Message:
