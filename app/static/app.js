@@ -490,7 +490,7 @@ function footer() {
             h("li", null, h("a", { href: state.user ? (isOwner() ? "#/painel" : "#/conta") : "#/entrar" }, state.user ? "Minha área" : "Entrar"))))),
       h("div", { class: "footer__bottom" },
         h("span", null, `© ${new Date().getFullYear()} ${s.business_name}`),
-        h("a", { href: "/docs" }, "API do site"))));
+        state.demo && h("a", { href: "/docs" }, "API do site"))));
 }
 
 function publicPage(content, opts = {}) {

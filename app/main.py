@@ -26,7 +26,7 @@ from app.notifications import run_due
 from app.ratelimit import LoginLimiter
 from app.routers import auth, dashboard, portfolio, push, quotes, site
 from app.security import hash_password
-from app.seed import DEMO_CLIENT, DEMO_OWNER, ensure_owner, seed_demo
+from app.seed import DEMO_CLIENT, DEMO_OWNER, ensure_owner, remove_demo_accounts, seed_demo
 
 __version__ = "1.0.0"
 STATIC_DIR = Path(__file__).parent / "static"
@@ -73,6 +73,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ensure_owner(db, settings)
             if settings.seed_demo:
                 seed_demo(db, get_today(settings), settings.password_iterations)
+            else:
+                remove_demo_accounts(db, settings)
         tasks = []
         if settings.push_scheduler:
             tasks.append(asyncio.create_task(push_loop()))
@@ -113,8 +115,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             client=DEMO_CLIENT[0], owner=DEMO_OWNER[0], password=DEMO_CLIENT[1]
         )
 
+    # No site de verdade, a documentação da API não fica aberta ao público.
+    public_docs = settings.seed_demo or settings.environment != "production"
     app = FastAPI(
         title="Site do Buffet",
+        docs_url="/docs" if public_docs else None,
+        redoc_url="/redoc" if public_docs else None,
+        openapi_url="/openapi.json" if public_docs else None,
         version=__version__,
         description=description,
         lifespan=lifespan,

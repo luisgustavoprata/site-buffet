@@ -127,3 +127,27 @@ def test_demo_has_example_results(settings):
         data = response.json()["data"]
         assert data["dre"]["receitaBruta"]["t"] > 0
         assert data["estoque"]
+
+
+def test_turning_demo_off_removes_the_demo_accounts(settings):
+    demo = demo_settings(settings, fresh=True)
+    with TestClient(create_app(demo)) as client:
+        assert client.get("/site").json()["business_name"] == "Brunoise Gastronomia"
+    with TestClient(create_app(settings)) as client:  # SEED_DEMO desligado
+        for email, password in (DEMO_CLIENT, DEMO_OWNER):
+            login = client.post("/auth/token", data={"username": email, "password": password})
+            assert login.status_code == 401
+        assert client.get("/site").json()["business_name"] == "Brunoise Gastronomia"
+        assert len(client.get("/events").json()) == 5  # o conteúdo continua
+        owner = client.post(
+            "/auth/token", data={"username": settings.owner_email, "password": "senha-forte-123"}
+        )
+        assert owner.status_code == 200
+
+
+def test_production_hides_the_api_docs(settings):
+    production = Settings(**{**settings.__dict__, "environment": "production"})
+    with TestClient(create_app(production)) as client:
+        for path in ("/docs", "/redoc", "/openapi.json"):
+            assert client.get(path).status_code == 404
+        assert client.get("/").status_code == 200

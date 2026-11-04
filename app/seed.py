@@ -54,6 +54,16 @@ def ensure_owner(db: Session, settings: Settings) -> None:
         user.role = Role.OWNER
 
 
+def remove_demo_accounts(db: Session, settings: Settings) -> None:
+    """Sem SEED_DEMO, as contas de exemplo (senha pública) não podem continuar entrando.
+
+    Os textos, fotos e eventos ficam; só saem as contas e o que é delas (a conversa de exemplo).
+    """
+    emails = [email for email, _ in (DEMO_OWNER, DEMO_CLIENT) if email != settings.owner_email]
+    for user in db.scalars(select(User).where(User.email.in_(emails))).all():
+        db.delete(user)
+
+
 def _image(db: Session, name: str) -> int:
     processed = process_upload((DEMO_DIR / f"{name}.jpg").read_bytes())
     image = Image(
