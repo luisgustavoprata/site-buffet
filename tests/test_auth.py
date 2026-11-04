@@ -123,3 +123,17 @@ def test_many_accounts_from_one_connection_are_limited(api):
     for n in range(5):
         assert api.register(email=f"pessoa{n}@exemplo.com").status_code == 201
     assert api.register(email="pessoa9@exemplo.com").status_code == 429
+
+
+def test_owner_creates_a_temporary_password_for_a_client(api, client, owner):
+    old_device = api.headers("ana@exemplo.com")
+    ana_id = client.get("/auth/me", headers=old_device).json()["id"]
+    assert client.post(f"/admin/clients/{ana_id}/password", headers=old_device).status_code == 403
+    response = client.post(f"/admin/clients/{ana_id}/password", headers=owner)
+    assert response.status_code == 200
+    temporary = response.json()["password"]
+    assert len(temporary) == 14 and temporary.count("-") == 2
+    assert client.get("/auth/me", headers=old_device).status_code == 401
+    assert api.login("ana@exemplo.com", temporary).status_code == 200
+    owner_id = client.get("/auth/me", headers=owner).json()["id"]
+    assert client.post(f"/admin/clients/{owner_id}/password", headers=owner).status_code == 404

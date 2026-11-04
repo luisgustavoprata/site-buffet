@@ -11,36 +11,51 @@
     :root { --bg: #faf6f1; --paper: #fffdf9; --ink: #2a1614; --soft: #5c4541; --muted: #8b746d; --accent: #7a1d14; --copper: #b4703e; --line: #ead9cc; }
     * { box-sizing: border-box; margin: 0; }
     body { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(circle at 20% 0%, #f6e7dc, transparent 55%), var(--bg); color: var(--ink); font: 16px/1.55 "DM Sans", system-ui, sans-serif; }
-    main { width: min(460px, 100%); background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 34px 30px 28px; box-shadow: 0 24px 60px -30px rgba(60, 20, 10, .35); text-align: center; display: grid; gap: 18px; }
-    img { width: 190px; height: auto; justify-self: center; }
-    h1 { font: 500 26px/1.2 "Fraunces", Georgia, serif; }
+    /* Foto da capa do site, bem suave, atrás do cartão (aparece quando carrega). */
+    .backdrop { position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity .6s; filter: blur(2px) saturate(.9); }
+    .backdrop.is-on { opacity: .38; }
+    main { position: relative; z-index: 1; width: min(440px, 100%); background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 34px 30px 26px; box-shadow: 0 24px 60px -30px rgba(60, 20, 10, .35); text-align: center; display: grid; gap: 16px; }
+    .logo { width: 180px; height: auto; justify-self: center; }
+    h1 { font: 500 28px/1.2 "Fraunces", Georgia, serif; }
+    h1 em { color: var(--copper); }
     p { color: var(--soft); }
-    .check { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; text-align: left; cursor: pointer; font: inherit; color: inherit; width: 100%; }
+    .check { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; text-align: left; cursor: pointer; font: inherit; font-weight: 600; color: inherit; width: 100%; transition: border-color .2s, box-shadow .2s; }
+    .check:hover:not(:disabled) { border-color: var(--copper); box-shadow: 0 6px 18px -10px rgba(122, 29, 20, .45); }
+    .check:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .check:disabled { cursor: default; }
     .box { width: 28px; height: 28px; border-radius: 8px; border: 2px solid var(--copper); display: grid; place-items: center; flex: none; }
     .check.is-working .box { border-color: var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+    .check.is-done { border-color: #2d6a3a; background: #f1f8f2; }
     .check.is-done .box { background: #2d6a3a; border-color: #2d6a3a; }
     .check.is-done .box::after { content: ""; width: 8px; height: 14px; border: solid #fff; border-width: 0 3px 3px 0; transform: translateY(-2px) rotate(45deg); }
     .bar { height: 6px; border-radius: 99px; background: #f1e6dd; overflow: hidden; }
+    .bar[hidden] { display: none; }
     .bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--copper), var(--accent)); transition: width .2s; }
     small { color: var(--muted); font-size: 13px; }
-    .status { min-height: 1.5em; font-weight: 600; color: var(--accent); }
+    .status { font-weight: 600; color: var(--accent); }
+    .status:empty { display: none; }
+    .status.is-ok { color: #2d6a3a; }
+    .help { padding-top: 14px; border-top: 1px solid var(--line); font-size: 14px; }
+    .help[hidden] { display: none; }
+    .help a { color: var(--accent); font-weight: 600; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { .check.is-working .box { animation: none; } }
   </style>
 </head>
 <body>
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
   <main>
-    <img src="/static/marca-clara.png" alt="Brunoise Gastronomia">
-    <h1>Verificação de segurança</h1>
-    <p>Para proteger o site, acessos por VPN, de fora do Brasil ou com muitos pedidos seguidos passam por uma confirmação rápida.</p>
+    <img class="logo" src="/static/marca-clara.png" alt="Brunoise Gastronomia">
+    <h1>Só um <em>instante</em></h1>
+    <p>Antes de abrir o site, confirmamos que quem está do outro lado é uma pessoa, e não um robô. É rápido.</p>
     <button class="check" id="check" type="button">
       <span class="box" aria-hidden="true"></span>
-      <span id="label">Confirmar que sou uma pessoa</span>
+      <span id="label">Sou uma pessoa, pode abrir</span>
     </button>
-    <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+    <div class="bar" id="bar-wrap" aria-hidden="true" hidden><span id="bar"></span></div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
-    <small>Leva poucos segundos. Nenhum dado pessoal é coletado.</small>
+    <small>Nenhum dado pessoal é coletado nesta etapa.</small>
+    <p class="help" id="help" hidden>Algum problema? <a id="help-link" href="#" target="_blank" rel="noopener">Fale com a gente pelo WhatsApp</a></p>
   </main>
   <script src="/static/seguranca.js"></script>
 </body>

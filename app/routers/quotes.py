@@ -36,8 +36,10 @@ from app.schemas import (
     QuoteOut,
     QuoteStatusUpdate,
     SortQuotes,
+    TemporaryPassword,
     Unread,
 )
+from app.security import hash_password
 from app.services import store_upload
 
 router = APIRouter(tags=["Orçamentos"])
@@ -361,3 +363,27 @@ def list_clients(
         )
         for user, quotes, last in db.execute(query.limit(500))
     ]
+
+
+# Sem letras e números parecidos (l/1, O/0): a senha vai ser lida e digitada no celular.
+PASSWORD_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"
+
+
+@router.post(
+    "/admin/clients/{client_id}/password",
+    response_model=TemporaryPassword,
+    summary="Cria uma senha provisória para um cliente que esqueceu a dele",
+    description="A senha antiga para de valer e o cliente sai de todos os aparelhos. "
+    "Mande a senha provisória pelo WhatsApp; ele troca em Minha conta → Trocar senha.",
+    responses=NOT_FOUND,
+)
+def reset_client_password(
+    client_id: int, db: SessionDep, settings: SettingsDep, _owner: OwnerUser
+) -> TemporaryPassword:
+    client = db.get(User, client_id)
+    if client is None or client.role != Role.CLIENT:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Cliente não encontrado.")
+    parts = ["".join(secrets.choice(PASSWORD_ALPHABET) for _ in range(4)) for _ in range(3)]
+    password = "-".join(parts)
+    client.password_hash = hash_password(password, settings.password_iterations)
+    return TemporaryPassword(password=password)

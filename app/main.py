@@ -11,7 +11,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import (
+    FileResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import sessionmaker
@@ -21,13 +27,13 @@ from app.config import Settings
 from app.database import Base, add_missing_columns, make_engine
 from app.deps import client_ip, get_today
 from app.ipguard import COOKIE, COUNTRY_URLS, VPN_URLS, IpGuard, env_sources, parse_ip
-from app.models import utcnow
+from app.models import Image, SiteContent, utcnow
 from app.notifications import run_due
 from app.ratelimit import LoginLimiter
 from app.routers import auth, dashboard, portfolio, push, quotes, site
 from app.security import hash_password
 from app.seed import DEMO_CLIENT, DEMO_OWNER, ensure_owner, remove_demo_accounts, seed_demo
-from app.services import delete_orphan_images
+from app.services import SITE_ID, delete_orphan_images
 
 __version__ = "1.0.0"
 STATIC_DIR = Path(__file__).parent / "static"
@@ -257,6 +263,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/_seguranca", include_in_schema=False)
     def challenge_page() -> FileResponse:
         return FileResponse(STATIC_DIR / "seguranca.html", headers={"Cache-Control": "no-store"})
+
+    @app.get("/_seguranca/contato", include_in_schema=False)
+    def challenge_contact() -> JSONResponse:
+        """WhatsApp do buffet e a capa do site, para a página de verificação."""
+        with session_factory() as db:
+            site = db.get(SiteContent, SITE_ID)
+            digits = "".join(c for c in (site.phone or "") if c.isdigit()) if site else ""
+            cover = site.hero_image_id if site else None
+        return JSONResponse(
+            {
+                "whatsapp": f"https://wa.me/55{digits}" if len(digits) >= 10 else None,
+                "cover": "/_seguranca/capa" if cover else None,
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+
+    @app.get("/_seguranca/capa", include_in_schema=False)
+    def challenge_cover() -> Response:
+        # A capa já é pública no site; aqui ela abre também para quem ainda não passou.
+        with session_factory() as db:
+            site = db.get(SiteContent, SITE_ID)
+            image = db.get(Image, site.hero_image_id) if site and site.hero_image_id else None
+            if image is None or image.access_key:
+                return JSONResponse({"detail": "Sem capa."}, status_code=404)
+            return Response(
+                image.data,
+                media_type=image.content_type,
+                headers={"Cache-Control": "public, max-age=3600"},
+            )
 
     @app.get("/_seguranca/desafio", include_in_schema=False)
     def new_challenge(request: Request) -> JSONResponse:

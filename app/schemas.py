@@ -328,6 +328,10 @@ class Unread(BaseModel):
     new_quotes: int = 0
 
 
+class TemporaryPassword(BaseModel):
+    password: str
+
+
 class ClientSummary(ClientOut):
     quotes: int
     last_quote_at: UtcDatetime | None

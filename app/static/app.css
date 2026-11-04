@@ -217,13 +217,41 @@ select.input { appearance: none; padding-right: 40px; background-image: url("dat
 
 .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: calc(100vh - 77px); }
 .split__aside { position: relative; overflow: hidden; background: var(--ink); color: #fff; display: grid; align-items: end; padding: clamp(28px, 5vw, 56px); }
-.split__aside img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.55; }
-.split__aside > div { position: relative; display: grid; gap: 10px; max-width: 460px; }
-.split__aside h2 { font-size: clamp(28px, 3.2vw, 40px); }
-.split__aside p { color: #efe2da; }
+.split__aside img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Degradê vinho por cima da foto: a imagem continua viva e o texto fica legível. */
+.split__aside::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(46, 10, 7, 0.94) 0%, rgba(94, 20, 13, 0.62) 42%, rgba(42, 22, 20, 0.08) 78%); }
+.split__aside > div { position: relative; z-index: 1; display: grid; gap: 12px; max-width: 480px; }
+.split__aside h2 { font-size: clamp(30px, 3.4vw, 46px); line-height: 1.1; color: #fff; }
+.split__aside h2 em { color: var(--copper-light); }
+.split__aside p { color: #f3e3d9; max-width: 42ch; }
+.split__aside .eyebrow { color: var(--copper-light); }
+/* No computador a foto acompanha a rolagem: o texto dela fica sempre à vista. */
+@media (min-width: 901px) { .split__aside { position: sticky; top: 77px; align-self: start; height: calc(100vh - 77px); } }
 .split__main { display: grid; place-items: center; padding: clamp(28px, 5vw, 64px) var(--gutter); }
 .panel-card { width: 100%; max-width: 520px; display: grid; gap: 22px; }
 .panel-card h1 { font-size: clamp(30px, 3.4vw, 40px); }
+.panel-card--auth { max-width: 460px; gap: 20px; }
+.panel-card__head { display: grid; gap: 6px; }
+.panel-card--auth h1 { font-size: clamp(28px, 3vw, 36px); }
+.perks { list-style: none; margin: 0; padding: 16px 18px; display: grid; gap: 12px; border-radius: var(--radius); background: var(--accent-soft); }
+.perks li { display: flex; align-items: center; gap: 12px; font-weight: 500; color: var(--ink); font-size: 15px; }
+.perks__icon { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--paper); color: var(--accent); font-size: 18px; }
+.input-wrap { position: relative; }
+.input-wrap .input { padding-right: 52px; width: 100%; }
+.reveal-btn { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+.reveal-btn:hover { color: var(--ink); background: var(--sand); }
+.reveal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.forgot { margin: -6px 0 0; text-align: right; font-size: 14px; }
+.forgot a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.forgot a:hover { text-decoration: underline; }
+.chef-note { display: flex; align-items: center; gap: 14px; padding-top: 18px; border-top: 1px solid var(--line); }
+.chef-note img, .chef-note__initial { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--copper-light); }
+.chef-note__initial { display: grid; place-items: center; background: var(--accent); color: #fff; font: 500 22px var(--display); }
+.chef-note p { margin: 0; display: grid; line-height: 1.25; }
+.chef-note span { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.chef-note .signature { font-size: 24px; transform: none; }
+.chef-note small { color: var(--muted); font-size: 13px; }
+.temp-password { font: 600 24px/1.2 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.04em; padding: 14px; border-radius: var(--radius-s); background: var(--sand); text-align: center; user-select: all; }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: var(--sand); }
 .tabs button { min-height: 42px; border: 0; border-radius: 999px; background: none; font-weight: 600; cursor: pointer; color: var(--ink-soft); }
 .tabs button[aria-selected="true"] { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
@@ -371,7 +399,9 @@ dialog.modal::backdrop { background: rgba(32, 12, 10, 0.55); }
   .history__img { order: -1; }
   .steps { grid-template-columns: minmax(0, 1fr); }
   .split { grid-template-columns: minmax(0, 1fr); }
-  .split__aside { min-height: 200px; }
+  .split__aside { min-height: 0; padding-top: 40px; padding-bottom: 26px; }
+  .split__aside > div > p:not(.eyebrow) { display: none; } /* no celular, o formulário aparece logo */
+  .split__aside h2 { font-size: clamp(26px, 7vw, 32px); }
   .admin { grid-template-columns: minmax(0, 1fr); }
   .admin__side { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 12px; gap: 6px; position: sticky; top: 77px; z-index: 20; }
   .admin__side .eyebrow { display: none; }

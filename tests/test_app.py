@@ -258,3 +258,14 @@ def test_orphan_photos_are_cleaned_on_restart(settings, client, owner, api):
         assert again.get(f"/media/{used}").status_code == 200
         assert again.get(f"/media/{orphan}").status_code == 404
         assert again.get(f"/media/{fresh}").status_code == 200  # pode estar sendo editada
+
+
+def test_challenge_page_gets_whatsapp_and_cover(client, owner, api):
+    assert client.get("/_seguranca/contato").json() == {"whatsapp": None, "cover": None}
+    cover = api.image(owner)
+    client.patch(
+        "/admin/site", json={"phone": "(64) 98113-1047", "hero_image_id": cover}, headers=owner
+    )
+    info = client.get("/_seguranca/contato").json()
+    assert info == {"whatsapp": "https://wa.me/5564981131047", "cover": "/_seguranca/capa"}
+    assert client.get("/_seguranca/capa").headers["content-type"].startswith("image/")

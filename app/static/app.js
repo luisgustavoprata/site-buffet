@@ -42,6 +42,9 @@ function fill(el, ...children) {
 }
 
 const ICONS = {
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
   left: '<path d="M15 5l-7 7 7 7"/>',
@@ -431,7 +434,7 @@ function brandLogo(name = "") {
     h("img", { class: "brand__dark", src: "/static/marca-escura.png", alt: "", width: 221, height: 75 }));
 }
 
-function header({ over = false } = {}) {
+function header({ over = false, minimal = false } = {}) {
   const site = state.site;
   const bar = h("header", { class: `topbar${over ? " topbar--over" : ""}` });
   const nav = h("nav", { class: "nav", "aria-label": "Principal" },
@@ -462,7 +465,8 @@ function header({ over = false } = {}) {
         e.currentTarget.setAttribute("aria-expanded", String(open));
       },
     }, icon("menu")),
-    h("div", { class: "topbar__actions" },
+    // Na tela de entrar, os botões de entrar e agendar do topo só repetiriam a página.
+    !minimal && h("div", { class: "topbar__actions" },
       account,
       !isOwner() && h("a", { class: "btn btn--primary btn--small", href: "#/orcamento" }, "Agendar evento"))));
 
@@ -1229,13 +1233,47 @@ function lightbox(ids, start, title) {
 
 /* ===================== 5. Entrar, cadastro e orçamento ===================== */
 
-function splitPage(asideTitle, asideText, content) {
+function splitPage(asideTitle, asideText, content, { minimal = false } = {}) {
   const s = state.site;
-  fill(root(), header(), h("main", { id: "conteudo", class: "split" },
+  fill(root(), header({ minimal }), h("main", { id: "conteudo", class: "split" },
     h("aside", { class: "split__aside" },
       s.hero_image_id && h("img", { src: media(s.hero_image_id), alt: "" }),
-      h("div", null, h("h2", null, asideTitle), h("p", null, asideText))),
+      h("div", null,
+        s.tagline && h("p", { class: "eyebrow" }, s.tagline),
+        h("h2", null, accentTitle(asideTitle)),
+        h("p", null, asideText))),
     h("div", { class: "split__main" }, content)));
+}
+
+/** Campo de senha com o botão de mostrar e esconder. */
+function passwordField(attrs) {
+  const wrap = field({ type: "password", ...attrs });
+  const input = wrap.querySelector("input");
+  const toggle = h("button", { class: "reveal-btn", type: "button", "aria-label": "Mostrar senha", "aria-pressed": "false" }, icon("eye"));
+  toggle.addEventListener("click", () => {
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    toggle.setAttribute("aria-label", show ? "Esconder senha" : "Mostrar senha");
+    toggle.setAttribute("aria-pressed", String(show));
+    fill(toggle, icon(show ? "eyeOff" : "eye"));
+    input.focus();
+  });
+  const box = h("div", { class: "input-wrap" });
+  input.before(box);
+  box.append(input, toggle);
+  return wrap;
+}
+
+/** Quem responde os pedidos: foto pequena e nome, como uma assinatura. */
+function chefNote() {
+  const s = state.site;
+  if (!s.owner_name) return null;
+  return h("div", { class: "chef-note" },
+    s.owner_image_id ? img(s.owner_image_id, "") : h("span", { class: "chef-note__initial", "aria-hidden": "true" }, s.owner_name[0]),
+    h("p", null,
+      h("span", null, "Quem responde o seu pedido"),
+      h("strong", { class: "signature" }, s.owner_name),
+      s.owner_role && h("small", null, s.owner_role)));
 }
 
 function afterLogin(user, back) {
@@ -1253,11 +1291,12 @@ function renderAuth(mode, query) {
   const form = h("form", { class: "form", novalidate: true, "data-auth": "1" },
     h("p", { class: "form__error", role: "alert", tabindex: "-1" }),
     !isLogin && field({ label: "Nome completo", name: "name", autocomplete: "name", required: true }),
-    field({ label: "E-mail", name: "email", type: "email", autocomplete: "email", required: true }),
+    field({ label: "E-mail", name: "email", type: "email", inputmode: "email", autocapitalize: "none", spellcheck: "false", autocomplete: "email", required: true }),
     !isLogin && h("div", { class: "form__row" },
       field({ label: "Telefone / WhatsApp", name: "phone", type: "tel", inputmode: "tel", autocomplete: "tel", placeholder: "(00) 00000-0000", required: true }),
       field({ label: "Cidade", name: "city", autocomplete: "address-level2", required: true })),
-    field({ label: "Senha", name: "password", type: "password", autocomplete: isLogin ? "current-password" : "new-password", required: true, hint: isLogin ? null : "Pelo menos 8 caracteres." }),
+    passwordField({ label: "Senha", name: "password", autocomplete: isLogin ? "current-password" : "new-password", required: true, hint: isLogin ? null : "Pelo menos 8 caracteres." }),
+    isLogin && forgotLink(),
     h("button", { class: "btn btn--primary btn--block", type: "submit" }, isLogin ? "Entrar" : "Criar minha conta"));
 
   form.elements.phone?.addEventListener("input", (e) => (e.target.value = maskPhone(e.target.value)));
@@ -1295,17 +1334,37 @@ function renderAuth(mode, query) {
     }
   }
 
-  splitPage(
-    back === "/orcamento" ? "Falta pouco para o seu orçamento" : `Bem-vindo(a) ao ${state.site.business_name}`,
-    back === "/orcamento" ? "Entre ou crie sua conta para contar sobre o evento. A conversa fica guardada e você recebe a resposta aqui no site."
-      : "Na sua conta você acompanha os pedidos de orçamento e conversa direto com a gente.",
-    h("div", { class: "panel-card" },
-      h("h1", null, isLogin ? "Entrar" : "Criar conta"),
-      h("div", { class: "tabs", role: "tablist" },
-        h("button", { type: "button", role: "tab", "aria-selected": String(isLogin), onclick: () => go(`/entrar${suffix}`) }, "Entrar"),
-        h("button", { type: "button", role: "tab", "aria-selected": String(!isLogin), onclick: () => go(`/cadastro${suffix}`) }, "Criar conta")),
-      demo, form));
-  form.querySelector("input")?.focus();
+  const chef = firstName(state.site.owner_name, "a gente");
+  const forQuote = back === "/orcamento";
+  const aside = forQuote
+    ? ["Falta pouco, é só entrar na sua conta", "Entre ou crie sua conta para contar sobre o evento. A conversa fica guardada e você recebe a resposta aqui no site."]
+    : isLogin
+      ? ["Que bom ver você, de novo por aqui", "Na sua conta você acompanha os pedidos de orçamento e conversa direto com a gente."]
+      : ["Seu evento começa aqui, com uma boa conversa", "Crie sua conta para pedir o orçamento e acompanhar tudo num lugar só."];
+  const perks = !isLogin && h("ul", { class: "perks" },
+    [["calendar", "Peça e acompanhe o seu orçamento"], ["chat", `Converse direto com ${chef}`], ["bell", "Receba um aviso quando a resposta chegar"]]
+      .map(([name, text]) => h("li", null, h("span", { class: "perks__icon" }, icon(name)), text)));
+
+  splitPage(aside[0], aside[1],
+    h("div", { class: "panel-card panel-card--auth" },
+      h("div", { class: "panel-card__head" },
+        h("p", { class: "eyebrow" }, "Área do cliente"),
+        h("h1", null, isLogin ? "Bem-vindo(a) de volta" : "Crie sua conta em 1 minuto")),
+      h("div", { class: "tabs", role: "tablist", "aria-label": "Entrar ou criar conta" },
+        h("button", { type: "button", role: "tab", "aria-selected": String(isLogin), onclick: () => go(`/entrar${suffix}`) }, "Já tenho conta"),
+        h("button", { type: "button", role: "tab", "aria-selected": String(!isLogin), onclick: () => go(`/cadastro${suffix}`) }, "Sou novo(a) aqui")),
+      perks, demo, form, chefNote()),
+    { minimal: true });
+  if (matchMedia("(min-width: 900px)").matches) form.querySelector("input")?.focus(); // no celular o teclado cobriria a tela
+}
+
+/** Senha esquecida: o site não manda e-mail, então o pedido vai pelo WhatsApp do buffet. */
+function forgotLink() {
+  const wa = whatsappLink(state.site.phone);
+  const text = encodeURIComponent(`Olá! Esqueci a senha da minha conta no site da ${state.site.business_name}.`);
+  return h("p", { class: "forgot" },
+    wa ? h("a", { href: `${wa}?text=${text}`, target: "_blank", rel: "noopener" }, "Esqueci minha senha")
+      : h("span", { class: "muted" }, "Esqueceu a senha? Fale com a gente pelo telefone do rodapé."));
 }
 
 function renderQuoteForm() {
@@ -2331,6 +2390,37 @@ function fillPlaceholders(text) {
     .replaceAll("{chef}", firstName(state.site.owner_name, "equipe"));
 }
 
+/** Cliente esqueceu a senha: gera uma provisória para mandar pelo WhatsApp. */
+function resetClientPassword(c) {
+  openModal(`Nova senha para ${firstName(c.name)}`, (close) => {
+    const body = h("div", { class: "form" },
+      h("p", null, `A senha atual de ${c.name} deixa de valer e a pessoa sai da conta em todos os aparelhos. Depois de entrar, ela pode trocar em Minha conta → Trocar senha.`),
+      h("div", { class: "form__actions" },
+        h("button", { class: "btn btn--ghost", type: "button", onclick: close }, "Cancelar"),
+        h("button", {
+          class: "btn btn--primary", type: "button",
+          onclick: async (e) => {
+            e.currentTarget.disabled = true;
+            try {
+              const { password } = await api.post(`/admin/clients/${c.id}/password`);
+              const wa = whatsappLink(c.phone);
+              const text = encodeURIComponent(`Olá, ${firstName(c.name)}! Sua senha provisória no site da ${state.site.business_name} é: ${password}\nDepois de entrar, troque em Minha conta → Trocar senha.`);
+              fill(body,
+                h("p", null, "Senha provisória criada:"),
+                h("p", { class: "temp-password" }, password),
+                h("div", { class: "form__actions" },
+                  h("button", { class: "btn btn--ghost", type: "button", onclick: close }, "Fechar"),
+                  wa && h("a", { class: "btn btn--primary", href: `${wa}?text=${text}`, target: "_blank", rel: "noopener" }, "Enviar pelo WhatsApp")));
+            } catch (err) {
+              toast(err.message, "error");
+              close();
+            }
+          },
+        }, "Criar senha provisória")));
+    return body;
+  });
+}
+
 async function adminClients(main) {
   const area = h("div", null, loading());
   const search = h("input", { class: "input", type: "search", placeholder: "Buscar por nome, e-mail ou cidade", "aria-label": "Buscar cliente", style: "max-width:420px" });
@@ -2344,7 +2434,7 @@ async function adminClients(main) {
       const clients = await api.get("/admin/clients", { q: search.value.trim() });
       fill(area, clients.length
         ? h("div", { class: "table-wrap" }, h("table", null,
-          h("thead", null, h("tr", null, ["Nome", "Contato", "Cidade", "Cadastro", "Pedidos"].map((t) => h("th", { scope: "col" }, t)))),
+          h("thead", null, h("tr", null, ["Nome", "Contato", "Cidade", "Cadastro", "Pedidos", "Senha"].map((t) => h("th", { scope: "col" }, t)))),
           h("tbody", null, clients.map((c) => {
             const wa = whatsappLink(c.phone);
             return h("tr", null,
@@ -2355,7 +2445,8 @@ async function adminClients(main) {
               h("td", null, DATE_SHORT.format(new Date(c.created_at))),
               h("td", null, c.quotes
                 ? h("a", { href: "#/painel", onclick: () => { adminFilters.q = c.email; adminFilters.status = ""; } }, plural(c.quotes, "pedido", "pedidos"))
-                : h("span", { class: "muted" }, "Nenhum")));
+                : h("span", { class: "muted" }, "Nenhum")),
+              h("td", null, h("button", { class: "btn btn--ghost btn--small", type: "button", onclick: () => resetClientPassword(c) }, "Nova senha")));
           }))))
         : h("div", { class: "empty" }, search.value ? "Nenhum cliente encontrado." : "Os clientes que criarem conta aparecem aqui."));
     } catch (err) {

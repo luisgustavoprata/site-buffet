@@ -50,11 +50,37 @@ function solve(salt, bits, onProgress) {
   });
 }
 
+const barWrap = document.getElementById("bar-wrap");
+
+// Foto da capa e WhatsApp do buffet: deixam a página com a cara do site e dão uma saída
+// para quem não conseguir passar (a pessoa nunca fica sem como falar com o buffet).
+fetch("/_seguranca/contato", { cache: "no-store" })
+  .then((r) => (r.ok ? r.json() : null))
+  .then((info) => {
+    if (!info) return;
+    if (info.whatsapp) {
+      document.getElementById("help-link").href = info.whatsapp;
+      document.getElementById("help").hidden = false;
+    }
+    if (info.cover) {
+      const photo = new Image();
+      photo.onload = () => {
+        const backdrop = document.getElementById("backdrop");
+        backdrop.style.backgroundImage = `url("${info.cover}")`;
+        backdrop.classList.add("is-on");
+      };
+      photo.src = info.cover;
+    }
+  })
+  .catch(() => {});
+
 async function run() {
   button.disabled = true;
   button.className = "check is-working";
-  label.textContent = "Verificando…";
+  label.textContent = "Confirmando…";
   statusEl.textContent = "";
+  statusEl.classList.remove("is-ok");
+  barWrap.hidden = false;
   bar.style.width = "4%";
   try {
     const challenge = await (await fetch("/_seguranca/desafio", { cache: "no-store" })).json();
@@ -66,15 +92,17 @@ async function run() {
     if (!response.ok) throw new Error("recusado");
     bar.style.width = "100%";
     button.className = "check is-done";
-    label.textContent = "Verificado";
+    label.textContent = "Confirmado";
     statusEl.textContent = "Tudo certo! Abrindo o site…";
+    statusEl.classList.add("is-ok");
     setTimeout(() => location.replace(back), 700);
   } catch {
     bar.style.width = "0";
+    barWrap.hidden = true;
     button.className = "check";
     button.disabled = false;
-    label.textContent = "Confirmar que sou uma pessoa";
-    statusEl.textContent = "Não foi possível confirmar. Tente de novo.";
+    label.textContent = "Tentar de novo";
+    statusEl.textContent = "Não foi possível confirmar. Confira a internet e tente de novo.";
   }
 }
 button.addEventListener("click", run);
