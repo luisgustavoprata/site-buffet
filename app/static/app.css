@@ -1057,3 +1057,92 @@ body:has(.push-invite) .wa-float, body:has(dialog[open]) .wa-float { display: no
 /* Painel: pedidos novos saltam aos olhos. */
 .quote-item--new { border-color: var(--accent); border-left-width: 4px; background: linear-gradient(90deg, var(--accent-soft), var(--paper) 60%); }
 .quote-item--new .quote-item__title { font-weight: 700; }
+
+/* ---------- Gestão (estoque, eventos, despesas, DRE e precificação) ---------- */
+
+.dash-card--w12 { grid-column: 1 / -1; }
+.fin { display: grid; gap: 18px; min-width: 0; }
+.fin-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+.fin-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 4px; margin: -8px 0 0; border-radius: 999px; background: var(--sand); scrollbar-width: none; }
+.fin-tabs::-webkit-scrollbar { display: none; }
+.fin-tabs a { flex: none; padding: 8px 16px; border-radius: 999px; color: var(--ink-soft); font-weight: 600; font-size: 14.5px; text-decoration: none; white-space: nowrap; }
+.fin-tabs a:hover { color: var(--ink); background: color-mix(in srgb, var(--paper) 60%, transparent); }
+.fin-tabs a[aria-current="page"] { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+.fin-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 20px; }
+.fin-bar > p { flex: 1 1 320px; font-size: 14.5px; max-width: 70ch; }
+.fin-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fin-filters .input { width: auto; min-height: 40px; padding-block: 6px; }
+.fin-filters input[type="search"] { min-width: 220px; }
+.fin-check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-soft); cursor: pointer; }
+
+.fin-table { font-size: 14px; }
+.fin-table th, .fin-table td { padding: 10px 12px; white-space: nowrap; }
+.fin-table td:nth-child(2), .fin-table td:nth-child(3) { white-space: normal; min-width: 140px; }
+.fin-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.fin-table tbody tr:hover td { background: #fdf8f4; }
+.fin-table .is-off td { color: var(--muted); }
+.fin-group th { background: var(--sand); color: var(--ink); font-size: 12px; letter-spacing: .08em; padding-block: 7px; }
+.fin-empty { text-align: center; color: var(--muted); padding: 28px 12px !important; }
+.fin-actions { text-align: right; }
+.fin-actions .link-btn { margin-left: 12px; font-size: 13.5px; }
+.fin-del { color: var(--danger) !important; }
+.fin-link { font-size: 13px; }
+.fin-strong th, .fin-strong td { font-weight: 700; background: #fbf6f2; }
+.is-neg { color: var(--danger); }
+.fin-table--edit td { padding: 6px 8px; vertical-align: middle; }
+.fin-table--edit .input, .fin-table--edit select { min-height: 38px; padding-block: 4px; font-size: 14px; }
+.fin-table--edit .field { gap: 0; }
+.fin-table--edit .field__label, .fin-table--edit .field__error:empty { display: none; }
+
+.fin-pill { display: inline-flex; align-items: center; min-height: 22px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.fin-pill--ok { background: #e3f0e5; color: var(--ok); }
+.fin-pill--warn { background: #f6edd7; color: #8a6413; }
+.fin-pill--bad { background: var(--accent-soft); color: var(--danger); }
+.fin-pill--info { background: #e8eef7; color: #2f5d94; }
+.fin-pill--muted { background: #eeeae6; color: var(--ink-soft); }
+
+/* DRE: primeira coluna fixa, totais em destaque, como na planilha. */
+.fin-dre table { font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.fin-dre th, .fin-dre td { padding: 8px 10px; white-space: nowrap; border-bottom-color: #f2e9e1; }
+.fin-dre td { text-align: right; }
+.fin-dre tbody th, .fin-dre thead th:first-child { position: sticky; left: 0; z-index: 1; text-align: left; background: var(--paper); font-size: 13.5px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink); min-width: 260px; white-space: normal; box-shadow: 1px 0 0 var(--line); }
+.fin-dre thead th { text-align: right; }
+.fin-dre thead th:first-child { background: #fbf6f2; font-weight: 600; }
+.fin-dre__total th, .fin-dre__total td { font-weight: 700; background: #fbf6f2 !important; }
+.fin-dre__pct th, .fin-dre__pct td { color: var(--muted); font-style: italic; }
+.fin-dre__head th { background: var(--sand) !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: .08em !important; text-transform: uppercase !important; }
+.fin-dre__line th { padding-left: 22px; color: var(--ink-soft) !important; }
+.fin-dre .fin-dre__total, .fin-dre td.fin-dre__total { font-weight: 700; }
+.fin-dre__av { color: var(--muted); }
+
+/* Precificação */
+.fin-sims { display: flex; flex-wrap: wrap; gap: 8px; }
+.fin-sims:empty { display: none; }
+.fin-pricing { display: grid; gap: 18px; }
+.fin-pricing__result { display: grid; gap: 16px; }
+.fin-row4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.fin-h3 { font-family: var(--text); font-size: 16px; font-weight: 700; }
+.fin-actions-row { justify-content: flex-start; flex-wrap: wrap; }
+.fin-price { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.fin-price > div { display: grid; gap: 2px; padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
+.fin-price span { font-size: 13px; color: var(--muted); font-weight: 600; }
+.fin-price strong { font-family: var(--display); font-size: clamp(24px, 3vw, 32px); font-weight: 500; color: var(--accent); }
+.fin-price small { color: var(--ink-soft); }
+.fin-price > div:first-child { background: var(--accent-deep); border-color: var(--accent-deep); }
+.fin-price > div:first-child span, .fin-price > div:first-child small { color: #f3d9c9; }
+.fin-price > div:first-child strong { color: #fff; }
+.fin-note { font-size: 13.5px; }
+.fin-quote { margin-top: 10px; }
+
+@media (max-width: 900px) {
+  .fin-row4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .admin__head .fin-quick { width: 100%; }
+  .fin-quick .btn { flex: 1 1 calc(50% - 8px); }
+  .fin-filters { width: 100%; }
+  .fin-filters .input, .fin-filters input[type="search"] { flex: 1 1 140px; min-width: 0; }
+  .fin-row4, .fin-price { grid-template-columns: minmax(0, 1fr); }
+  .fin-dre tbody th, .fin-dre thead th:first-child { min-width: 170px; }
+}
+.dash .fin-year { width: auto; min-height: 38px; padding-block: 4px; background: var(--d-panel-2); color: var(--d-fg); border-color: var(--d-line-2); }

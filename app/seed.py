@@ -16,7 +16,6 @@ from app.config import Settings
 from app.images import process_upload
 from app.models import (
     BioPhoto,
-    Dashboard,
     Event,
     EventComment,
     EventLike,
@@ -27,6 +26,7 @@ from app.models import (
     QuoteStatus,
     Role,
     SiteContent,
+    StockItem,
     User,
 )
 from app.security import hash_password, verify_password
@@ -209,7 +209,7 @@ def seed_demo(db: Session, today: date, iterations: int) -> None:
     if db.scalar(select(User.id).where(User.email == DEMO_OWNER[0])) is not None:
         _refresh_old_demo(db)
         _demo_reactions(db)
-        _demo_dashboard(db)
+        _demo_gestao(db)
         return  # a demonstração já existe: reiniciar o servidor não duplica nada
     if not _site_is_blank(db):
         return  # o site já tem conteúdo de verdade: a demonstração não apaga nada
@@ -362,7 +362,7 @@ def seed_demo(db: Session, today: date, iterations: int) -> None:
     quote.client_read_id = first  # as duas respostas da Helena aparecem como novas
     quote.owner_read_id = first + 2
     _demo_reactions(db)
-    _demo_dashboard(db)
+    _demo_gestao(db)
 
 
 def _demo_reactions(db: Session) -> None:
@@ -392,15 +392,12 @@ def _demo_reactions(db: Session) -> None:
     )
 
 
-def _demo_dashboard(db: Session) -> None:
-    """Números de exemplo na aba Resultados, tirados da planilha de demonstração."""
-    if db.get(Dashboard, 1) is not None:
+def _demo_gestao(db: Session) -> None:
+    """Lançamentos de exemplo na aba Gestão, tirados da planilha de demonstração."""
+    from app.routers.gestao import import_data  # evita import circular
+    from app.schemas import FinanceImport
+
+    if db.scalar(select(StockItem.id).limit(1)) is not None:
         return
-    data = json.loads((DEMO_DIR / "resultados.json").read_text(encoding="utf-8"))
-    db.add(
-        Dashboard(
-            id=1,
-            file_name="Planilha_Buffet_DRE_Estoque.ods (exemplo)",
-            data=json.dumps(data, ensure_ascii=False, separators=(",", ":")),
-        )
-    )
+    data = json.loads((DEMO_DIR / "gestao.json").read_text(encoding="utf-8"))
+    import_data(db, FinanceImport.model_validate(data))

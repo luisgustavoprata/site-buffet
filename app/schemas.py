@@ -376,12 +376,238 @@ class ClientSummary(ClientOut):
 SortQuotes = Literal["recentes", "evento"]
 
 
-class DashboardIn(Input):
-    file_name: str = Field(default="", max_length=200)
-    data: dict
+# ---------- Gestão (estoque, eventos, despesas, DRE e precificação) ----------
+
+Money = Annotated[float, Field(ge=0, le=100_000_000)]
+Qty = Annotated[float, Field(gt=0, le=10_000_000)]
+Rate = Annotated[float, Field(ge=0, lt=1)]
+ShortList = Annotated[
+    list[Annotated[str, Field(min_length=1, max_length=60)]], Field(max_length=60)
+]
+EventStatus = Literal["orcamento", "confirmado", "realizado", "cancelado"]
+OutKind = Literal["evento", "perda", "consumo"]
+DreGroup = Literal[
+    "Custo direto do evento",
+    "Pessoal",
+    "Ocupação",
+    "Utilidades",
+    "Comercial",
+    "Administrativa",
+    "Manutenção",
+    "Depreciação",
+    "Despesa financeira",
+    "Receita financeira",
+]
+PricingKind = Literal["Comida", "Bebidas", "Descartáveis"]
 
 
-class DashboardOut(Output):
-    file_name: str
-    updated_at: UtcDatetime
-    data: dict
+class FinanceConfigIn(Input):
+    tax_rate: Rate
+    income_tax_rate: Rate
+    item_categories: ShortList
+    units: ShortList
+    event_types: ShortList
+    payment_methods: ShortList
+
+
+class FinanceConfigOut(Output):
+    tax_rate: float
+    income_tax_rate: float
+    item_categories: list[str]
+    units: list[str]
+    event_types: list[str]
+    payment_methods: list[str]
+    groups: list[str] = []
+
+
+class ExpenseCategoryIn(Input):
+    name: str = Field(min_length=1, max_length=80)
+    group: DreGroup
+
+
+class ExpenseCategoryOut(Output):
+    id: int
+    name: str
+    group: str
+    position: int
+
+
+class StockItemIn(Input):
+    code: str = Field(default="", max_length=20, description="Vazio: o site cria (ex.: CAR012).")
+    name: str = Field(min_length=1, max_length=120)
+    category: str = Field(min_length=1, max_length=60)
+    unit: str = Field(min_length=1, max_length=20)
+    min_stock: Money = 0
+    initial_stock: Money = 0
+    initial_cost: Money = 0
+    active: bool = True
+
+
+class StockItemOut(BaseModel):
+    id: int
+    code: str
+    name: str
+    category: str
+    unit: str
+    min_stock: float
+    initial_stock: float
+    initial_cost: float
+    active: bool
+    total_in: float
+    total_out: float
+    balance: float
+    avg_cost: float
+    value: float
+    status: str
+    suggestion: float
+
+
+class StockInIn(Input):
+    entry_date: date
+    item_id: int
+    quantity: Qty
+    unit_cost: Money
+    supplier: str = Field(default="", max_length=120)
+    invoice: str = Field(default="", max_length=40)
+
+
+class StockInOut(Output):
+    id: int
+    entry_date: date
+    item_id: int
+    item_code: str
+    item_name: str
+    unit: str
+    quantity: float
+    unit_cost: float
+    total: float
+    supplier: str
+    invoice: str
+
+
+class StockOutIn(Input):
+    entry_date: date
+    item_id: int
+    quantity: Qty
+    kind: OutKind
+    event_id: int | None = None
+    note: str = Field(default="", max_length=200)
+
+
+class StockOutOut(Output):
+    id: int
+    entry_date: date
+    item_id: int
+    item_code: str
+    item_name: str
+    unit: str
+    quantity: float
+    kind: str
+    event_id: int | None
+    event_code: str | None
+    unit_cost: float
+    total: float
+    note: str
+
+
+class FinanceEventIn(Input):
+    code: str = Field(default="", max_length=20, description="Vazio: o site cria (EV001...).")
+    event_date: date
+    client: str = Field(min_length=1, max_length=120)
+    event_type: str = Field(min_length=1, max_length=40)
+    guests: int = Field(ge=1, le=100_000)
+    price_per_guest: Money
+    discount: Money = 0
+    status: EventStatus = "confirmado"
+    quote_id: int | None = None
+    notes: str = Field(default="", max_length=2000)
+
+
+class FinanceEventOut(Output):
+    id: int
+    code: str
+    event_date: date
+    client: str
+    event_type: str
+    guests: int
+    price_per_guest: float
+    discount: float
+    status: str
+    quote_id: int | None
+    notes: str
+    gross: float = 0
+    net: float = 0
+    cmv: float = 0
+    direct_costs: float = 0
+    cmv_per_guest: float = 0
+    margin_on_inputs: float = 0
+    contribution: float = 0
+
+
+class ExpenseIn(Input):
+    entry_date: date
+    category_id: int
+    description: str = Field(default="", max_length=200)
+    supplier: str = Field(default="", max_length=120)
+    amount: Annotated[float, Field(gt=0, le=100_000_000)]
+    payment: str = Field(default="", max_length=40)
+    event_id: int | None = None
+
+
+class ExpenseOut(Output):
+    id: int
+    entry_date: date
+    category_id: int
+    category: str
+    group: str
+    description: str
+    supplier: str
+    amount: float
+    payment: str
+    event_id: int | None
+    event_code: str | None
+
+
+class PricingItemIn(Input):
+    item_id: int
+    kind: PricingKind = "Comida"
+    per_guest: Annotated[float, Field(ge=0, le=100_000)]
+
+
+class PricingIn(Input):
+    name: str = Field(min_length=1, max_length=120)
+    event_type: str = Field(default="", max_length=40)
+    guests: int = Field(ge=1, le=100_000)
+    safety_margin: Annotated[float, Field(ge=0, le=2)] = 0.1
+    profit_margin: Rate = 0.2
+    charged_per_guest: Money | None = None
+    items: list[PricingItemIn] = Field(default_factory=list, max_length=200)
+
+
+class PricingOut(Output):
+    id: int | None = None
+    name: str
+    event_type: str
+    guests: int
+    safety_margin: float
+    profit_margin: float
+    charged_per_guest: float | None
+    items: list[dict]
+    updated_at: UtcDatetime | None = None
+    result: dict = {}
+
+
+class FinanceImport(Input):
+    """Tudo da planilha antiga, lido no navegador. Substitui os dados da gestão."""
+
+    config: FinanceConfigIn | None = None
+    categories: list[ExpenseCategoryIn] = Field(default_factory=list, max_length=500)
+    items: list[StockItemIn] = Field(default_factory=list, max_length=5000)
+    events: list[FinanceEventIn] = Field(default_factory=list, max_length=5000)
+    # Nas linhas abaixo, item/evento/categoria vêm pelo código ou pelo nome.
+    stock_in: list[dict] = Field(default_factory=list, max_length=20000)
+    stock_out: list[dict] = Field(default_factory=list, max_length=20000)
+    expenses: list[dict] = Field(default_factory=list, max_length=20000)
+    # Simulações da aba Precificação: {"name", "event_type", "guests", "safety_margin",
+    # "profit_margin", "items": [{"item": "CAR001", "kind": "Comida", "per_guest": 0.12}]}
+    pricing: list[dict] = Field(default_factory=list, max_length=50)

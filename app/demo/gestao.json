@@ -1,0 +1,4566 @@
+{
+ "pricing": [
+  {
+   "name": "Simulação — casamento",
+   "event_type": "Casamento",
+   "guests": 160.0,
+   "safety_margin": 0.1,
+   "profit_margin": 1.0,
+   "items": [
+    {
+     "kind": "Comida",
+     "item": "CAR001",
+     "per_guest": 0.12
+    },
+    {
+     "kind": "Comida",
+     "item": "CAR007",
+     "per_guest": 0.1
+    },
+    {
+     "kind": "Comida",
+     "item": "CAR009",
+     "per_guest": 0.03
+    },
+    {
+     "kind": "Comida",
+     "item": "MER001",
+     "per_guest": 0.06
+    },
+    {
+     "kind": "Comida",
+     "item": "VER001",
+     "per_guest": 0.08
+    },
+    {
+     "kind": "Comida",
+     "item": "VER005",
+     "per_guest": 0.05
+    },
+    {
+     "kind": "Comida",
+     "item": "VER004",
+     "per_guest": 0.04
+    },
+    {
+     "kind": "Comida",
+     "item": "VER002",
+     "per_guest": 0.02
+    },
+    {
+     "kind": "Comida",
+     "item": "VER003",
+     "per_guest": 0.003
+    },
+    {
+     "kind": "Comida",
+     "item": "MER006",
+     "per_guest": 0.01
+    },
+    {
+     "kind": "Comida",
+     "item": "FRI001",
+     "per_guest": 0.02
+    },
+    {
+     "kind": "Comida",
+     "item": "CON003",
+     "per_guest": 0.08
+    },
+    {
+     "kind": "Comida",
+     "item": "LAT003",
+     "per_guest": 0.1
+    },
+    {
+     "kind": "Comida",
+     "item": "LAT002",
+     "per_guest": 0.1
+    },
+    {
+     "kind": "Bebidas",
+     "item": "BEB001",
+     "per_guest": 0.08
+    },
+    {
+     "kind": "Bebidas",
+     "item": "BEB002",
+     "per_guest": 0.03
+    },
+    {
+     "kind": "Bebidas",
+     "item": "BEB003",
+     "per_guest": 0.06
+    },
+    {
+     "kind": "Bebidas",
+     "item": "BEB005",
+     "per_guest": 0.03
+    },
+    {
+     "kind": "Bebidas",
+     "item": "BEB007",
+     "per_guest": 0.05
+    },
+    {
+     "kind": "Bebidas",
+     "item": "BEB013",
+     "per_guest": 1.0
+    },
+    {
+     "kind": "Bebidas",
+     "item": "BEB016",
+     "per_guest": 0.5
+    },
+    {
+     "kind": "Bebidas",
+     "item": "ALC001",
+     "per_guest": 1.0
+    },
+    {
+     "kind": "Bebidas",
+     "item": "ALC002",
+     "per_guest": 0.3
+    },
+    {
+     "kind": "Bebidas",
+     "item": "ALC004",
+     "per_guest": 0.3
+    },
+    {
+     "kind": "Bebidas",
+     "item": "ALC005",
+     "per_guest": 0.1
+    },
+    {
+     "kind": "Bebidas",
+     "item": "ALC007",
+     "per_guest": 0.05
+    },
+    {
+     "kind": "Descartáveis",
+     "item": "DES001",
+     "per_guest": 0.05
+    },
+    {
+     "kind": "Descartáveis",
+     "item": "DES002",
+     "per_guest": 0.04
+    },
+    {
+     "kind": "Descartáveis",
+     "item": "DES007",
+     "per_guest": 0.005
+    },
+    {
+     "kind": "Descartáveis",
+     "item": "LIM004",
+     "per_guest": 0.01
+    }
+   ]
+  }
+ ],
+ "config": {
+  "tax_rate": 0.08,
+  "income_tax_rate": 0,
+  "item_categories": [
+   "Carnes",
+   "Peixes e frutos do mar",
+   "Frios e embutidos",
+   "Laticínios e ovos",
+   "Congelados",
+   "Verduras e legumes",
+   "Frutas",
+   "Mercearia",
+   "Bebidas não alcoólicas",
+   "Bebidas alcoólicas",
+   "Descartáveis",
+   "Limpeza"
+  ],
+  "units": [
+   "kg",
+   "g",
+   "L",
+   "ml",
+   "un",
+   "pct",
+   "cx",
+   "dz",
+   "cento",
+   "rolo",
+   "maço",
+   "bandeja"
+  ],
+  "event_types": [
+   "Casamento",
+   "Aniversário",
+   "Infantil",
+   "15 anos",
+   "Corporativo",
+   "Formatura",
+   "Batizado",
+   "Confraternização",
+   "Outros"
+  ],
+  "payment_methods": [
+   "PIX",
+   "Boleto",
+   "Cartão",
+   "Dinheiro",
+   "Transferência",
+   "Débito automático"
+  ]
+ },
+ "categories": [
+  {
+   "name": "Freelancers (garçons, copeiros, cozinheiros)",
+   "group": "Custo direto do evento"
+  },
+  {
+   "name": "Locação de equipamentos e louças",
+   "group": "Custo direto do evento"
+  },
+  {
+   "name": "Transporte/frete de eventos",
+   "group": "Custo direto do evento"
+  },
+  {
+   "name": "Serviços terceirizados (decoração, som)",
+   "group": "Custo direto do evento"
+  },
+  {
+   "name": "Salários",
+   "group": "Pessoal"
+  },
+  {
+   "name": "Encargos (INSS, FGTS)",
+   "group": "Pessoal"
+  },
+  {
+   "name": "Benefícios (VT, VA)",
+   "group": "Pessoal"
+  },
+  {
+   "name": "Pró-labore",
+   "group": "Pessoal"
+  },
+  {
+   "name": "Aluguel",
+   "group": "Ocupação"
+  },
+  {
+   "name": "IPTU / condomínio",
+   "group": "Ocupação"
+  },
+  {
+   "name": "Energia elétrica",
+   "group": "Utilidades"
+  },
+  {
+   "name": "Água e esgoto",
+   "group": "Utilidades"
+  },
+  {
+   "name": "Gás GLP",
+   "group": "Utilidades"
+  },
+  {
+   "name": "Internet e telefone",
+   "group": "Utilidades"
+  },
+  {
+   "name": "Marketing e anúncios",
+   "group": "Comercial"
+  },
+  {
+   "name": "Comissões de venda",
+   "group": "Comercial"
+  },
+  {
+   "name": "Contabilidade",
+   "group": "Administrativa"
+  },
+  {
+   "name": "Sistemas e software",
+   "group": "Administrativa"
+  },
+  {
+   "name": "Material de escritório",
+   "group": "Administrativa"
+  },
+  {
+   "name": "Taxas, alvarás e licenças",
+   "group": "Administrativa"
+  },
+  {
+   "name": "Manutenção de equipamentos",
+   "group": "Manutenção"
+  },
+  {
+   "name": "Manutenção predial",
+   "group": "Manutenção"
+  },
+  {
+   "name": "Depreciação",
+   "group": "Depreciação"
+  },
+  {
+   "name": "Tarifas bancárias / maquininha",
+   "group": "Despesa financeira"
+  },
+  {
+   "name": "Juros e multas",
+   "group": "Despesa financeira"
+  },
+  {
+   "name": "Rendimentos de aplicações",
+   "group": "Receita financeira"
+  }
+ ],
+ "items": [
+  {
+   "code": "CAR001",
+   "name": "Picanha bovina",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 15.0,
+   "initial_stock": 20.0,
+   "initial_cost": 85.0
+  },
+  {
+   "code": "CAR002",
+   "name": "Alcatra bovina",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 15.0,
+   "initial_stock": 15.0,
+   "initial_cost": 48.0
+  },
+  {
+   "code": "CAR003",
+   "name": "Fraldinha",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 45.0
+  },
+  {
+   "code": "CAR004",
+   "name": "Costela bovina",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 32.0
+  },
+  {
+   "code": "CAR005",
+   "name": "Lombo suíno",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 8.0,
+   "initial_cost": 28.0
+  },
+  {
+   "code": "CAR006",
+   "name": "Pernil suíno",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 24.0
+  },
+  {
+   "code": "CAR007",
+   "name": "Peito de frango",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 20.0,
+   "initial_stock": 25.0,
+   "initial_cost": 22.0
+  },
+  {
+   "code": "CAR008",
+   "name": "Coxa e sobrecoxa",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 15.0,
+   "initial_stock": 15.0,
+   "initial_cost": 15.0
+  },
+  {
+   "code": "CAR009",
+   "name": "Linguiça toscana",
+   "category": "Carnes",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 22.0
+  },
+  {
+   "code": "PEI001",
+   "name": "Filé de tilápia",
+   "category": "Peixes e frutos do mar",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 6.0,
+   "initial_cost": 45.0
+  },
+  {
+   "code": "PEI002",
+   "name": "Camarão médio limpo",
+   "category": "Peixes e frutos do mar",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 80.0
+  },
+  {
+   "code": "PEI003",
+   "name": "Salmão em posta",
+   "category": "Peixes e frutos do mar",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 3.0,
+   "initial_cost": 95.0
+  },
+  {
+   "code": "FRI001",
+   "name": "Queijo muçarela",
+   "category": "Frios e embutidos",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 8.0,
+   "initial_cost": 42.0
+  },
+  {
+   "code": "FRI002",
+   "name": "Queijo parmesão",
+   "category": "Frios e embutidos",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 90.0
+  },
+  {
+   "code": "FRI003",
+   "name": "Queijo prato",
+   "category": "Frios e embutidos",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 48.0
+  },
+  {
+   "code": "FRI004",
+   "name": "Presunto",
+   "category": "Frios e embutidos",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 35.0
+  },
+  {
+   "code": "FRI005",
+   "name": "Peito de peru",
+   "category": "Frios e embutidos",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 60.0
+  },
+  {
+   "code": "FRI006",
+   "name": "Salame italiano",
+   "category": "Frios e embutidos",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 2.0,
+   "initial_cost": 85.0
+  },
+  {
+   "code": "FRI007",
+   "name": "Bacon",
+   "category": "Frios e embutidos",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 38.0
+  },
+  {
+   "code": "LAT001",
+   "name": "Leite integral",
+   "category": "Laticínios e ovos",
+   "unit": "L",
+   "min_stock": 12.0,
+   "initial_stock": 24.0,
+   "initial_cost": 5.5
+  },
+  {
+   "code": "LAT002",
+   "name": "Creme de leite 200 g",
+   "category": "Laticínios e ovos",
+   "unit": "un",
+   "min_stock": 30.0,
+   "initial_stock": 48.0,
+   "initial_cost": 3.8
+  },
+  {
+   "code": "LAT003",
+   "name": "Leite condensado 395 g",
+   "category": "Laticínios e ovos",
+   "unit": "un",
+   "min_stock": 30.0,
+   "initial_stock": 48.0,
+   "initial_cost": 6.5
+  },
+  {
+   "code": "LAT004",
+   "name": "Manteiga",
+   "category": "Laticínios e ovos",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 55.0
+  },
+  {
+   "code": "LAT005",
+   "name": "Requeijão cremoso",
+   "category": "Laticínios e ovos",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 30.0
+  },
+  {
+   "code": "LAT006",
+   "name": "Cream cheese",
+   "category": "Laticínios e ovos",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 2.0,
+   "initial_cost": 40.0
+  },
+  {
+   "code": "LAT007",
+   "name": "Ovos",
+   "category": "Laticínios e ovos",
+   "unit": "dz",
+   "min_stock": 10.0,
+   "initial_stock": 15.0,
+   "initial_cost": 12.0
+  },
+  {
+   "code": "CON001",
+   "name": "Batata palito congelada",
+   "category": "Congelados",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 15.0,
+   "initial_cost": 18.0
+  },
+  {
+   "code": "CON002",
+   "name": "Pão de queijo congelado",
+   "category": "Congelados",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 10.0,
+   "initial_cost": 28.0
+  },
+  {
+   "code": "CON003",
+   "name": "Salgadinhos fritos congelados (cento)",
+   "category": "Congelados",
+   "unit": "cento",
+   "min_stock": 5.0,
+   "initial_stock": 8.0,
+   "initial_cost": 45.0
+  },
+  {
+   "code": "CON004",
+   "name": "Mini pizza congelada (cento)",
+   "category": "Congelados",
+   "unit": "cento",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 70.0
+  },
+  {
+   "code": "CON005",
+   "name": "Sorvete (pote 2 L)",
+   "category": "Congelados",
+   "unit": "un",
+   "min_stock": 5.0,
+   "initial_stock": 6.0,
+   "initial_cost": 30.0
+  },
+  {
+   "code": "VER001",
+   "name": "Batata",
+   "category": "Verduras e legumes",
+   "unit": "kg",
+   "min_stock": 20.0,
+   "initial_stock": 30.0,
+   "initial_cost": 6.0
+  },
+  {
+   "code": "VER002",
+   "name": "Cebola",
+   "category": "Verduras e legumes",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 15.0,
+   "initial_cost": 5.0
+  },
+  {
+   "code": "VER003",
+   "name": "Alho",
+   "category": "Verduras e legumes",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 30.0
+  },
+  {
+   "code": "VER004",
+   "name": "Tomate",
+   "category": "Verduras e legumes",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 20.0,
+   "initial_cost": 8.0
+  },
+  {
+   "code": "VER005",
+   "name": "Alface",
+   "category": "Verduras e legumes",
+   "unit": "un",
+   "min_stock": 15.0,
+   "initial_stock": 30.0,
+   "initial_cost": 3.5
+  },
+  {
+   "code": "VER006",
+   "name": "Cenoura",
+   "category": "Verduras e legumes",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 8.0,
+   "initial_cost": 5.0
+  },
+  {
+   "code": "VER007",
+   "name": "Abobrinha",
+   "category": "Verduras e legumes",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 5.0,
+   "initial_cost": 7.0
+  },
+  {
+   "code": "VER008",
+   "name": "Pimentão",
+   "category": "Verduras e legumes",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 10.0
+  },
+  {
+   "code": "VER009",
+   "name": "Cheiro-verde",
+   "category": "Verduras e legumes",
+   "unit": "maço",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 2.5
+  },
+  {
+   "code": "FRU001",
+   "name": "Limão",
+   "category": "Frutas",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 6.0,
+   "initial_cost": 6.0
+  },
+  {
+   "code": "FRU002",
+   "name": "Laranja",
+   "category": "Frutas",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 4.0
+  },
+  {
+   "code": "FRU003",
+   "name": "Abacaxi",
+   "category": "Frutas",
+   "unit": "un",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 7.0
+  },
+  {
+   "code": "FRU004",
+   "name": "Manga",
+   "category": "Frutas",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 5.0,
+   "initial_cost": 6.0
+  },
+  {
+   "code": "FRU005",
+   "name": "Morango",
+   "category": "Frutas",
+   "unit": "bandeja",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 10.0
+  },
+  {
+   "code": "FRU006",
+   "name": "Uva sem semente",
+   "category": "Frutas",
+   "unit": "kg",
+   "min_stock": 3.0,
+   "initial_stock": 3.0,
+   "initial_cost": 18.0
+  },
+  {
+   "code": "MER001",
+   "name": "Arroz tipo 1",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 30.0,
+   "initial_stock": 80.0,
+   "initial_cost": 6.5
+  },
+  {
+   "code": "MER002",
+   "name": "Feijão carioca",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 20.0,
+   "initial_cost": 8.0
+  },
+  {
+   "code": "MER003",
+   "name": "Farinha de trigo",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 20.0,
+   "initial_cost": 5.0
+  },
+  {
+   "code": "MER004",
+   "name": "Açúcar refinado",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 20.0,
+   "initial_cost": 4.5
+  },
+  {
+   "code": "MER005",
+   "name": "Sal",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 10.0,
+   "initial_cost": 2.5
+  },
+  {
+   "code": "MER006",
+   "name": "Óleo de soja",
+   "category": "Mercearia",
+   "unit": "L",
+   "min_stock": 10.0,
+   "initial_stock": 18.0,
+   "initial_cost": 8.0
+  },
+  {
+   "code": "MER007",
+   "name": "Azeite extravirgem",
+   "category": "Mercearia",
+   "unit": "L",
+   "min_stock": 3.0,
+   "initial_stock": 5.0,
+   "initial_cost": 45.0
+  },
+  {
+   "code": "MER008",
+   "name": "Macarrão",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 15.0,
+   "initial_cost": 9.0
+  },
+  {
+   "code": "MER009",
+   "name": "Molho de tomate",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 10.0,
+   "initial_stock": 12.0,
+   "initial_cost": 10.0
+  },
+  {
+   "code": "MER010",
+   "name": "Milho verde em lata",
+   "category": "Mercearia",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 24.0,
+   "initial_cost": 4.5
+  },
+  {
+   "code": "MER011",
+   "name": "Palmito",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 50.0
+  },
+  {
+   "code": "MER012",
+   "name": "Azeitona",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 30.0
+  },
+  {
+   "code": "MER013",
+   "name": "Maionese",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 5.0,
+   "initial_stock": 6.0,
+   "initial_cost": 18.0
+  },
+  {
+   "code": "MER014",
+   "name": "Vinagre",
+   "category": "Mercearia",
+   "unit": "L",
+   "min_stock": 3.0,
+   "initial_stock": 6.0,
+   "initial_cost": 4.0
+  },
+  {
+   "code": "MER015",
+   "name": "Temperos e especiarias",
+   "category": "Mercearia",
+   "unit": "kg",
+   "min_stock": 2.0,
+   "initial_stock": 3.0,
+   "initial_cost": 40.0
+  },
+  {
+   "code": "BEB001",
+   "name": "Coca-Cola 2 L",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 24.0,
+   "initial_stock": 30.0,
+   "initial_cost": 11.0
+  },
+  {
+   "code": "BEB002",
+   "name": "Coca-Cola Zero 2 L",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 15.0,
+   "initial_cost": 11.0
+  },
+  {
+   "code": "BEB003",
+   "name": "Guaraná Antarctica 2 L",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 24.0,
+   "initial_stock": 30.0,
+   "initial_cost": 9.0
+  },
+  {
+   "code": "BEB004",
+   "name": "Guaraná Antarctica Zero 2 L",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 15.0,
+   "initial_cost": 9.0
+  },
+  {
+   "code": "BEB005",
+   "name": "Guaraná Mineiro 2 L",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 15.0,
+   "initial_cost": 8.0
+  },
+  {
+   "code": "BEB006",
+   "name": "Guaraná Mineiro Zero 2 L",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 6.0,
+   "initial_stock": 8.0,
+   "initial_cost": 8.0
+  },
+  {
+   "code": "BEB007",
+   "name": "Suco de laranja natural",
+   "category": "Bebidas não alcoólicas",
+   "unit": "L",
+   "min_stock": 10.0,
+   "initial_stock": 10.0,
+   "initial_cost": 10.0
+  },
+  {
+   "code": "BEB008",
+   "name": "Suco de uva (caixinha)",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 15.0,
+   "initial_cost": 8.0
+  },
+  {
+   "code": "BEB009",
+   "name": "Suco de manga (caixinha)",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 12.0,
+   "initial_cost": 7.0
+  },
+  {
+   "code": "BEB010",
+   "name": "Suco de maracujá (caixinha)",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 12.0,
+   "initial_cost": 7.0
+  },
+  {
+   "code": "BEB011",
+   "name": "Suco de pêssego (caixinha)",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 12.0,
+   "initial_cost": 7.0
+  },
+  {
+   "code": "BEB012",
+   "name": "Suco de morango (caixinha)",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 12.0,
+   "initial_cost": 7.5
+  },
+  {
+   "code": "BEB013",
+   "name": "Água mineral 500 ml",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 150.0,
+   "initial_stock": 200.0,
+   "initial_cost": 1.5
+  },
+  {
+   "code": "BEB014",
+   "name": "Água mineral de copinho 200 ml (cx 48)",
+   "category": "Bebidas não alcoólicas",
+   "unit": "cx",
+   "min_stock": 4.0,
+   "initial_stock": 6.0,
+   "initial_cost": 30.0
+  },
+  {
+   "code": "BEB015",
+   "name": "Água com gás 500 ml",
+   "category": "Bebidas não alcoólicas",
+   "unit": "un",
+   "min_stock": 48.0,
+   "initial_stock": 60.0,
+   "initial_cost": 2.2
+  },
+  {
+   "code": "BEB016",
+   "name": "Gelo",
+   "category": "Bebidas não alcoólicas",
+   "unit": "kg",
+   "min_stock": 0,
+   "initial_stock": 0,
+   "initial_cost": 1.5
+  },
+  {
+   "code": "ALC001",
+   "name": "Cerveja lata 350 ml",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 200.0,
+   "initial_stock": 300.0,
+   "initial_cost": 4.2
+  },
+  {
+   "code": "ALC002",
+   "name": "Cerveja Heineken 600 ml (garrafa)",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 48.0,
+   "initial_stock": 60.0,
+   "initial_cost": 13.0
+  },
+  {
+   "code": "ALC003",
+   "name": "Cerveja Amstel 600 ml (garrafa)",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 48.0,
+   "initial_stock": 60.0,
+   "initial_cost": 9.0
+  },
+  {
+   "code": "ALC004",
+   "name": "Cerveja Original 600 ml (garrafa)",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 48.0,
+   "initial_stock": 60.0,
+   "initial_cost": 10.0
+  },
+  {
+   "code": "ALC005",
+   "name": "Espumante",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 18.0,
+   "initial_cost": 35.0
+  },
+  {
+   "code": "ALC006",
+   "name": "Vinho tinto seco",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 12.0,
+   "initial_cost": 40.0
+  },
+  {
+   "code": "ALC007",
+   "name": "Vinho tinto suave",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 12.0,
+   "initial_stock": 12.0,
+   "initial_cost": 30.0
+  },
+  {
+   "code": "ALC008",
+   "name": "Vodka 1 L",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 45.0
+  },
+  {
+   "code": "ALC009",
+   "name": "Whisky 1 L",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 2.0,
+   "initial_stock": 2.0,
+   "initial_cost": 120.0
+  },
+  {
+   "code": "ALC010",
+   "name": "Campari 900 ml",
+   "category": "Bebidas alcoólicas",
+   "unit": "un",
+   "min_stock": 3.0,
+   "initial_stock": 4.0,
+   "initial_cost": 55.0
+  },
+  {
+   "code": "DES001",
+   "name": "Guardanapo (pct 50)",
+   "category": "Descartáveis",
+   "unit": "pct",
+   "min_stock": 20.0,
+   "initial_stock": 30.0,
+   "initial_cost": 4.0
+  },
+  {
+   "code": "DES002",
+   "name": "Copo descartável 200 ml (pct 100)",
+   "category": "Descartáveis",
+   "unit": "pct",
+   "min_stock": 10.0,
+   "initial_stock": 15.0,
+   "initial_cost": 6.0
+  },
+  {
+   "code": "DES003",
+   "name": "Forminha de docinho (pct 100)",
+   "category": "Descartáveis",
+   "unit": "pct",
+   "min_stock": 10.0,
+   "initial_stock": 15.0,
+   "initial_cost": 5.0
+  },
+  {
+   "code": "DES004",
+   "name": "Papel alumínio",
+   "category": "Descartáveis",
+   "unit": "rolo",
+   "min_stock": 5.0,
+   "initial_stock": 8.0,
+   "initial_cost": 12.0
+  },
+  {
+   "code": "DES005",
+   "name": "Filme PVC",
+   "category": "Descartáveis",
+   "unit": "rolo",
+   "min_stock": 3.0,
+   "initial_stock": 5.0,
+   "initial_cost": 25.0
+  },
+  {
+   "code": "DES006",
+   "name": "Embalagem para viagem",
+   "category": "Descartáveis",
+   "unit": "un",
+   "min_stock": 50.0,
+   "initial_stock": 100.0,
+   "initial_cost": 1.2
+  },
+  {
+   "code": "DES007",
+   "name": "Luva descartável (cx 100)",
+   "category": "Descartáveis",
+   "unit": "cx",
+   "min_stock": 3.0,
+   "initial_stock": 5.0,
+   "initial_cost": 25.0
+  },
+  {
+   "code": "LIM001",
+   "name": "Detergente",
+   "category": "Limpeza",
+   "unit": "un",
+   "min_stock": 10.0,
+   "initial_stock": 20.0,
+   "initial_cost": 3.0
+  },
+  {
+   "code": "LIM002",
+   "name": "Desinfetante",
+   "category": "Limpeza",
+   "unit": "L",
+   "min_stock": 5.0,
+   "initial_stock": 10.0,
+   "initial_cost": 8.0
+  },
+  {
+   "code": "LIM003",
+   "name": "Esponja",
+   "category": "Limpeza",
+   "unit": "un",
+   "min_stock": 10.0,
+   "initial_stock": 20.0,
+   "initial_cost": 1.5
+  },
+  {
+   "code": "LIM004",
+   "name": "Saco de lixo 100 L (pct)",
+   "category": "Limpeza",
+   "unit": "pct",
+   "min_stock": 5.0,
+   "initial_stock": 8.0,
+   "initial_cost": 15.0
+  },
+  {
+   "code": "LIM005",
+   "name": "Saco de lixo 200 L (pct)",
+   "category": "Limpeza",
+   "unit": "pct",
+   "min_stock": 3.0,
+   "initial_stock": 5.0,
+   "initial_cost": 25.0
+  }
+ ],
+ "events": [
+  {
+   "code": "EV001",
+   "event_date": "2026-09-05",
+   "client": "Família Andrade (casamento)",
+   "event_type": "Casamento",
+   "guests": 180,
+   "price_per_guest": 145.0,
+   "discount": 0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV002",
+   "event_date": "2026-09-12",
+   "client": "Aniversário Marta (50 anos)",
+   "event_type": "Aniversário",
+   "guests": 100,
+   "price_per_guest": 105.0,
+   "discount": 0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV003",
+   "event_date": "2026-09-19",
+   "client": "Família Rocha (15 anos)",
+   "event_type": "15 anos",
+   "guests": 120,
+   "price_per_guest": 110.0,
+   "discount": 0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV004",
+   "event_date": "2026-09-26",
+   "client": "Cooperativa Agro Sul",
+   "event_type": "Corporativo",
+   "guests": 80,
+   "price_per_guest": 95.0,
+   "discount": 0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV005",
+   "event_date": "2026-10-03",
+   "client": "Concessionária Rota (lançamento)",
+   "event_type": "Corporativo",
+   "guests": 90,
+   "price_per_guest": 95.0,
+   "discount": 0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV006",
+   "event_date": "2026-10-10",
+   "client": "Família Lima (casamento)",
+   "event_type": "Casamento",
+   "guests": 220,
+   "price_per_guest": 150.0,
+   "discount": 1500.0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV007",
+   "event_date": "2026-10-17",
+   "client": "Turma Agronomia 2026",
+   "event_type": "Formatura",
+   "guests": 150,
+   "price_per_guest": 120.0,
+   "discount": 0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV008",
+   "event_date": "2026-10-24",
+   "client": "Aniversário Pedro (6 anos)",
+   "event_type": "Infantil",
+   "guests": 60,
+   "price_per_guest": 85.0,
+   "discount": 0,
+   "status": "realizado"
+  },
+  {
+   "code": "EV009",
+   "event_date": "2026-11-14",
+   "client": "Família Costa (casamento)",
+   "event_type": "Casamento",
+   "guests": 200,
+   "price_per_guest": 155.0,
+   "discount": 0,
+   "status": "confirmado"
+  },
+  {
+   "code": "EV010",
+   "event_date": "2026-11-21",
+   "client": "Clínica Vida (confraternização)",
+   "event_type": "Confraternização",
+   "guests": 100,
+   "price_per_guest": 98.0,
+   "discount": 0,
+   "status": "confirmado"
+  }
+ ],
+ "stock_in": [
+  {
+   "date": "2026-09-03",
+   "item": "CAR001",
+   "quantity": 10.0,
+   "unit_cost": 85.0,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-09-10",
+   "item": "CAR001",
+   "quantity": 9.0,
+   "unit_cost": 85.0,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1002"
+  },
+  {
+   "date": "2026-09-10",
+   "item": "CAR007",
+   "quantity": 7.0,
+   "unit_cost": 22.0,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1002"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "CAR001",
+   "quantity": 15.0,
+   "unit_cost": 85.0,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "CAR007",
+   "quantity": 13.0,
+   "unit_cost": 22.0,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "CAR001",
+   "quantity": 8.0,
+   "unit_cost": 85.0,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "CAR007",
+   "quantity": 7.0,
+   "unit_cost": 22.0,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "CAR001",
+   "quantity": 11.0,
+   "unit_cost": 87.55,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "CAR007",
+   "quantity": 9.0,
+   "unit_cost": 22.66,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "CAR001",
+   "quantity": 31.0,
+   "unit_cost": 87.55,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "CAR007",
+   "quantity": 26.0,
+   "unit_cost": 22.66,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "CAR001",
+   "quantity": 16.0,
+   "unit_cost": 87.55,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "CAR007",
+   "quantity": 13.0,
+   "unit_cost": 22.66,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "CAR007",
+   "quantity": 5.0,
+   "unit_cost": 22.66,
+   "supplier": "Frigorífico Boi Bom",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "FRI001",
+   "quantity": 2.0,
+   "unit_cost": 42.0,
+   "supplier": "Laticínios Serra",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "FRI001",
+   "quantity": 3.0,
+   "unit_cost": 43.26,
+   "supplier": "Laticínios Serra",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "FRI001",
+   "quantity": 6.0,
+   "unit_cost": 43.26,
+   "supplier": "Laticínios Serra",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "FRI001",
+   "quantity": 2.0,
+   "unit_cost": 43.26,
+   "supplier": "Laticínios Serra",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "LAT003",
+   "quantity": 4.0,
+   "unit_cost": 6.5,
+   "supplier": "Laticínios Serra",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "LAT002",
+   "quantity": 4.0,
+   "unit_cost": 3.8,
+   "supplier": "Laticínios Serra",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "LAT003",
+   "quantity": 9.0,
+   "unit_cost": 6.7,
+   "supplier": "Laticínios Serra",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "LAT002",
+   "quantity": 9.0,
+   "unit_cost": 3.91,
+   "supplier": "Laticínios Serra",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "LAT003",
+   "quantity": 26.0,
+   "unit_cost": 6.7,
+   "supplier": "Laticínios Serra",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "LAT002",
+   "quantity": 26.0,
+   "unit_cost": 3.91,
+   "supplier": "Laticínios Serra",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "LAT003",
+   "quantity": 13.0,
+   "unit_cost": 6.7,
+   "supplier": "Laticínios Serra",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "LAT002",
+   "quantity": 13.0,
+   "unit_cost": 3.91,
+   "supplier": "Laticínios Serra",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "LAT003",
+   "quantity": 7.0,
+   "unit_cost": 6.7,
+   "supplier": "Laticínios Serra",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "VER001",
+   "quantity": 6.0,
+   "unit_cost": 6.0,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "VER001",
+   "quantity": 6.0,
+   "unit_cost": 6.0,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "VER001",
+   "quantity": 7.0,
+   "unit_cost": 6.18,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "VER004",
+   "quantity": 5.0,
+   "unit_cost": 8.24,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "VER001",
+   "quantity": 21.0,
+   "unit_cost": 6.18,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "VER005",
+   "quantity": 14.0,
+   "unit_cost": 3.6,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "VER004",
+   "quantity": 11.0,
+   "unit_cost": 8.24,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "VER002",
+   "quantity": 4.0,
+   "unit_cost": 5.15,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-09",
+   "item": "VER005",
+   "quantity": 6.0,
+   "unit_cost": 3.5,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1009"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "VER001",
+   "quantity": 10.0,
+   "unit_cost": 6.18,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "VER005",
+   "quantity": 7.0,
+   "unit_cost": 3.6,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "VER004",
+   "quantity": 5.0,
+   "unit_cost": 8.24,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "VER002",
+   "quantity": 2.0,
+   "unit_cost": 5.15,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "VER001",
+   "quantity": 5.0,
+   "unit_cost": 6.18,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-09-03",
+   "item": "FRU005",
+   "quantity": 3.0,
+   "unit_cost": 10.0,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "FRU005",
+   "quantity": 12.0,
+   "unit_cost": 10.3,
+   "supplier": "Ceasa — Hortifruti Vale",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-09-03",
+   "item": "BEB007",
+   "quantity": 3.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-09-03",
+   "item": "BEB013",
+   "quantity": 35.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-09-03",
+   "item": "BEB016",
+   "quantity": 118.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-09-10",
+   "item": "BEB007",
+   "quantity": 4.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1002"
+  },
+  {
+   "date": "2026-09-10",
+   "item": "BEB013",
+   "quantity": 76.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1002"
+  },
+  {
+   "date": "2026-09-10",
+   "item": "BEB016",
+   "quantity": 38.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1002"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "BEB001",
+   "quantity": 6.0,
+   "unit_cost": 11.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "BEB007",
+   "quantity": 6.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "BEB013",
+   "quantity": 126.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "BEB016",
+   "quantity": 63.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "BEB001",
+   "quantity": 6.0,
+   "unit_cost": 11.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "BEB007",
+   "quantity": 4.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "BEB013",
+   "quantity": 68.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "BEB016",
+   "quantity": 34.0,
+   "unit_cost": 1.5,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "BEB001",
+   "quantity": 7.0,
+   "unit_cost": 11.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "BEB002",
+   "quantity": 4.0,
+   "unit_cost": 11.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "BEB003",
+   "quantity": 7.0,
+   "unit_cost": 9.27,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "BEB005",
+   "quantity": 4.0,
+   "unit_cost": 8.24,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "BEB007",
+   "quantity": 4.0,
+   "unit_cost": 10.3,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "BEB013",
+   "quantity": 93.0,
+   "unit_cost": 1.54,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "BEB016",
+   "quantity": 47.0,
+   "unit_cost": 1.54,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "BEB001",
+   "quantity": 21.0,
+   "unit_cost": 11.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "BEB002",
+   "quantity": 8.0,
+   "unit_cost": 11.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "BEB003",
+   "quantity": 16.0,
+   "unit_cost": 9.27,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "BEB005",
+   "quantity": 8.0,
+   "unit_cost": 8.24,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "BEB007",
+   "quantity": 13.0,
+   "unit_cost": 10.3,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "BEB013",
+   "quantity": 259.0,
+   "unit_cost": 1.54,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "BEB016",
+   "quantity": 129.0,
+   "unit_cost": 1.54,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "BEB001",
+   "quantity": 10.0,
+   "unit_cost": 11.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "BEB002",
+   "quantity": 4.0,
+   "unit_cost": 11.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "BEB003",
+   "quantity": 8.0,
+   "unit_cost": 9.27,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "BEB005",
+   "quantity": 4.0,
+   "unit_cost": 8.24,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "BEB007",
+   "quantity": 7.0,
+   "unit_cost": 10.3,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "BEB013",
+   "quantity": 129.0,
+   "unit_cost": 1.54,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "BEB016",
+   "quantity": 65.0,
+   "unit_cost": 1.54,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "BEB001",
+   "quantity": 5.0,
+   "unit_cost": 11.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "BEB003",
+   "quantity": 6.0,
+   "unit_cost": 9.27,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "BEB013",
+   "quantity": 33.0,
+   "unit_cost": 1.54,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-09-03",
+   "item": "ALC002",
+   "quantity": 12.0,
+   "unit_cost": 13.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-09-03",
+   "item": "ALC004",
+   "quantity": 12.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-09-03",
+   "item": "ALC005",
+   "quantity": 7.0,
+   "unit_cost": 35.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1001"
+  },
+  {
+   "date": "2026-09-10",
+   "item": "ALC002",
+   "quantity": 22.0,
+   "unit_cost": 13.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1002"
+  },
+  {
+   "date": "2026-09-10",
+   "item": "ALC004",
+   "quantity": 22.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1002"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "ALC001",
+   "quantity": 137.0,
+   "unit_cost": 4.2,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "ALC002",
+   "quantity": 38.0,
+   "unit_cost": 13.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "ALC004",
+   "quantity": 38.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "ALC003",
+   "quantity": 29.0,
+   "unit_cost": 9.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "ALC001",
+   "quantity": 68.0,
+   "unit_cost": 4.2,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "ALC002",
+   "quantity": 21.0,
+   "unit_cost": 13.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "ALC004",
+   "quantity": 21.0,
+   "unit_cost": 10.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "ALC003",
+   "quantity": 13.0,
+   "unit_cost": 9.0,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "ALC001",
+   "quantity": 93.0,
+   "unit_cost": 4.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "ALC002",
+   "quantity": 28.0,
+   "unit_cost": 13.39,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "ALC004",
+   "quantity": 28.0,
+   "unit_cost": 10.3,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "ALC003",
+   "quantity": 19.0,
+   "unit_cost": 9.27,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "ALC001",
+   "quantity": 259.0,
+   "unit_cost": 4.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "ALC002",
+   "quantity": 77.0,
+   "unit_cost": 13.39,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "ALC004",
+   "quantity": 77.0,
+   "unit_cost": 10.3,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "ALC003",
+   "quantity": 52.0,
+   "unit_cost": 9.27,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "ALC005",
+   "quantity": 23.0,
+   "unit_cost": 36.05,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "ALC007",
+   "quantity": 13.0,
+   "unit_cost": 30.9,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "ALC010",
+   "quantity": 2.0,
+   "unit_cost": 56.65,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "ALC001",
+   "quantity": 129.0,
+   "unit_cost": 4.33,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "ALC002",
+   "quantity": 39.0,
+   "unit_cost": 13.39,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "ALC004",
+   "quantity": 39.0,
+   "unit_cost": 10.3,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "ALC003",
+   "quantity": 25.0,
+   "unit_cost": 9.27,
+   "supplier": "Distribuidora Gelada",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "DES002",
+   "quantity": 4.0,
+   "unit_cost": 6.0,
+   "supplier": "Embala Mais",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-17",
+   "item": "DES003",
+   "quantity": 4.0,
+   "unit_cost": 5.0,
+   "supplier": "Embala Mais",
+   "invoice": "1003"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "DES002",
+   "quantity": 3.0,
+   "unit_cost": 6.0,
+   "supplier": "Embala Mais",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-09-24",
+   "item": "DES003",
+   "quantity": 3.0,
+   "unit_cost": 5.0,
+   "supplier": "Embala Mais",
+   "invoice": "1004"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "DES002",
+   "quantity": 3.0,
+   "unit_cost": 6.18,
+   "supplier": "Embala Mais",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-01",
+   "item": "DES003",
+   "quantity": 3.0,
+   "unit_cost": 5.15,
+   "supplier": "Embala Mais",
+   "invoice": "1005"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "DES001",
+   "quantity": 14.0,
+   "unit_cost": 4.12,
+   "supplier": "Embala Mais",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "DES002",
+   "quantity": 11.0,
+   "unit_cost": 6.18,
+   "supplier": "Embala Mais",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-08",
+   "item": "DES003",
+   "quantity": 11.0,
+   "unit_cost": 5.15,
+   "supplier": "Embala Mais",
+   "invoice": "1006"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "DES001",
+   "quantity": 7.0,
+   "unit_cost": 4.12,
+   "supplier": "Embala Mais",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "DES002",
+   "quantity": 5.0,
+   "unit_cost": 6.18,
+   "supplier": "Embala Mais",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "DES003",
+   "quantity": 5.0,
+   "unit_cost": 5.15,
+   "supplier": "Embala Mais",
+   "invoice": "1007"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "DES001",
+   "quantity": 2.0,
+   "unit_cost": 4.12,
+   "supplier": "Embala Mais",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "DES002",
+   "quantity": 2.0,
+   "unit_cost": 6.18,
+   "supplier": "Embala Mais",
+   "invoice": "1008"
+  },
+  {
+   "date": "2026-10-22",
+   "item": "DES003",
+   "quantity": 3.0,
+   "unit_cost": 5.15,
+   "supplier": "Embala Mais",
+   "invoice": "1008"
+  }
+ ],
+ "stock_out": [
+  {
+   "date": "2026-09-05",
+   "item": "CAR001",
+   "quantity": 21.6,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "CAR007",
+   "quantity": 18.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "CAR001",
+   "quantity": 12.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "CAR007",
+   "quantity": 10.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "CAR001",
+   "quantity": 14.4,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "CAR007",
+   "quantity": 12.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "CAR001",
+   "quantity": 9.6,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "CAR007",
+   "quantity": 8.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "CAR001",
+   "quantity": 10.8,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "CAR007",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "CAR001",
+   "quantity": 26.4,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "CAR007",
+   "quantity": 22.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "CAR001",
+   "quantity": 18.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "CAR007",
+   "quantity": 15.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "CAR007",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "CAR009",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "FRI001",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "FRI001",
+   "quantity": 2.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "FRI001",
+   "quantity": 2.4,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "FRI001",
+   "quantity": 1.6,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "FRI001",
+   "quantity": 1.8,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "FRI001",
+   "quantity": 4.4,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "FRI001",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "FRI001",
+   "quantity": 1.8,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "FRI004",
+   "quantity": 1.2,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "LAT003",
+   "quantity": 18.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "LAT002",
+   "quantity": 18.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "LAT003",
+   "quantity": 10.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "LAT002",
+   "quantity": 10.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "LAT003",
+   "quantity": 12.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "LAT002",
+   "quantity": 12.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "LAT003",
+   "quantity": 8.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "LAT002",
+   "quantity": 8.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "LAT003",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "LAT002",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "LAT003",
+   "quantity": 22.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "LAT002",
+   "quantity": 22.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "LAT003",
+   "quantity": 15.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "LAT002",
+   "quantity": 15.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "LAT003",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "VER001",
+   "quantity": 14.4,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "VER005",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "VER004",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "VER002",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "VER003",
+   "quantity": 0.54,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "VER001",
+   "quantity": 8.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "VER005",
+   "quantity": 5.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "VER004",
+   "quantity": 4.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "VER002",
+   "quantity": 2.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "VER003",
+   "quantity": 0.3,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "VER001",
+   "quantity": 9.6,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "VER005",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "VER004",
+   "quantity": 4.8,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "VER002",
+   "quantity": 2.4,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "VER003",
+   "quantity": 0.36,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "VER001",
+   "quantity": 6.4,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "VER005",
+   "quantity": 4.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "VER004",
+   "quantity": 3.2,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "VER002",
+   "quantity": 1.6,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "VER003",
+   "quantity": 0.24,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "VER001",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "VER005",
+   "quantity": 4.5,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "VER004",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "VER002",
+   "quantity": 1.8,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "VER003",
+   "quantity": 0.27,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "VER001",
+   "quantity": 17.6,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "VER005",
+   "quantity": 11.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "VER004",
+   "quantity": 8.8,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "VER002",
+   "quantity": 4.4,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "VER003",
+   "quantity": 0.66,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-12",
+   "item": "VER004",
+   "quantity": 3.0,
+   "kind": "perda",
+   "event": null,
+   "note": "Tomate passado"
+  },
+  {
+   "date": "2026-10-12",
+   "item": "VER005",
+   "quantity": 5.0,
+   "kind": "perda",
+   "event": null,
+   "note": "Murchou na câmara"
+  },
+  {
+   "date": "2026-10-17",
+   "item": "VER001",
+   "quantity": 12.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "VER005",
+   "quantity": 7.5,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "VER004",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "VER002",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "VER003",
+   "quantity": 0.45,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "VER001",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "FRU005",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "FRU005",
+   "quantity": 11.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "MER001",
+   "quantity": 10.8,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "MER006",
+   "quantity": 1.8,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "MER001",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "MER006",
+   "quantity": 1.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-15",
+   "item": "MER001",
+   "quantity": 5.0,
+   "kind": "consumo",
+   "event": null,
+   "note": "Refeição da equipe"
+  },
+  {
+   "date": "2026-09-15",
+   "item": "MER002",
+   "quantity": 3.0,
+   "kind": "consumo",
+   "event": null,
+   "note": "Refeição da equipe"
+  },
+  {
+   "date": "2026-09-19",
+   "item": "MER001",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "MER006",
+   "quantity": 1.2,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "MER001",
+   "quantity": 4.8,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "MER006",
+   "quantity": 0.8,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "MER001",
+   "quantity": 5.4,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "MER006",
+   "quantity": 0.9,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "MER001",
+   "quantity": 13.2,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "MER006",
+   "quantity": 2.2,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-15",
+   "item": "MER001",
+   "quantity": 5.0,
+   "kind": "consumo",
+   "event": null,
+   "note": "Refeição da equipe"
+  },
+  {
+   "date": "2026-10-15",
+   "item": "MER002",
+   "quantity": 3.0,
+   "kind": "consumo",
+   "event": null,
+   "note": "Refeição da equipe"
+  },
+  {
+   "date": "2026-10-17",
+   "item": "MER001",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "MER006",
+   "quantity": 1.5,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "MER001",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "BEB001",
+   "quantity": 14.4,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "BEB002",
+   "quantity": 5.4,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "BEB003",
+   "quantity": 10.8,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "BEB005",
+   "quantity": 5.4,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "BEB007",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "BEB013",
+   "quantity": 180.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "BEB016",
+   "quantity": 90.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "BEB001",
+   "quantity": 8.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "BEB002",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "BEB003",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "BEB005",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "BEB007",
+   "quantity": 5.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "BEB013",
+   "quantity": 100.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "BEB016",
+   "quantity": 50.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "BEB001",
+   "quantity": 9.6,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "BEB002",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "BEB003",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "BEB005",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "BEB007",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "BEB013",
+   "quantity": 120.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "BEB016",
+   "quantity": 60.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "BEB001",
+   "quantity": 6.4,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "BEB002",
+   "quantity": 2.4,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "BEB003",
+   "quantity": 4.8,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "BEB005",
+   "quantity": 2.4,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "BEB007",
+   "quantity": 4.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "BEB013",
+   "quantity": 80.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "BEB016",
+   "quantity": 40.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "BEB001",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "BEB002",
+   "quantity": 2.7,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "BEB003",
+   "quantity": 5.4,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "BEB005",
+   "quantity": 2.7,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "BEB007",
+   "quantity": 4.5,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "BEB013",
+   "quantity": 90.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "BEB016",
+   "quantity": 45.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "BEB001",
+   "quantity": 17.6,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "BEB002",
+   "quantity": 6.6,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "BEB003",
+   "quantity": 13.2,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "BEB005",
+   "quantity": 6.6,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "BEB007",
+   "quantity": 11.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "BEB013",
+   "quantity": 220.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "BEB016",
+   "quantity": 110.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "BEB001",
+   "quantity": 12.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "BEB002",
+   "quantity": 4.5,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "BEB003",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "BEB005",
+   "quantity": 4.5,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "BEB007",
+   "quantity": 7.5,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "BEB013",
+   "quantity": 150.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "BEB016",
+   "quantity": 75.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB001",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB003",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB004",
+   "quantity": 2.4,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB008",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB012",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB014",
+   "quantity": 1.2,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB013",
+   "quantity": 60.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "BEB016",
+   "quantity": 18.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "ALC001",
+   "quantity": 180.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "ALC002",
+   "quantity": 54.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "ALC004",
+   "quantity": 54.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "ALC003",
+   "quantity": 36.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "ALC005",
+   "quantity": 18.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "ALC007",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "ALC010",
+   "quantity": 1.8,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "ALC001",
+   "quantity": 100.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "ALC002",
+   "quantity": 30.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "ALC004",
+   "quantity": 30.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "ALC003",
+   "quantity": 20.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "ALC001",
+   "quantity": 120.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "ALC002",
+   "quantity": 36.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "ALC004",
+   "quantity": 36.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "ALC003",
+   "quantity": 24.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "ALC001",
+   "quantity": 80.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "ALC002",
+   "quantity": 24.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "ALC004",
+   "quantity": 24.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "ALC003",
+   "quantity": 16.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "ALC001",
+   "quantity": 90.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "ALC002",
+   "quantity": 27.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "ALC004",
+   "quantity": 27.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "ALC003",
+   "quantity": 18.0,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "ALC001",
+   "quantity": 220.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "ALC002",
+   "quantity": 66.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "ALC004",
+   "quantity": 66.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "ALC003",
+   "quantity": 44.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "ALC005",
+   "quantity": 22.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "ALC007",
+   "quantity": 11.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "ALC010",
+   "quantity": 2.2,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "ALC001",
+   "quantity": 150.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "ALC002",
+   "quantity": 45.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "ALC004",
+   "quantity": 45.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "ALC003",
+   "quantity": 30.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-20",
+   "item": "ALC005",
+   "quantity": 2.0,
+   "kind": "perda",
+   "event": null,
+   "note": "Garrafas quebradas"
+  },
+  {
+   "date": "2026-09-05",
+   "item": "DES001",
+   "quantity": 9.0,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "DES002",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "DES007",
+   "quantity": 0.9,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-05",
+   "item": "DES003",
+   "quantity": 7.2,
+   "kind": "evento",
+   "event": "EV001",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "DES001",
+   "quantity": 5.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "DES002",
+   "quantity": 4.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "DES007",
+   "quantity": 0.5,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-12",
+   "item": "DES003",
+   "quantity": 4.0,
+   "kind": "evento",
+   "event": "EV002",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "DES001",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "DES002",
+   "quantity": 4.8,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "DES007",
+   "quantity": 0.6,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-19",
+   "item": "DES003",
+   "quantity": 4.8,
+   "kind": "evento",
+   "event": "EV003",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "DES001",
+   "quantity": 4.0,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "DES002",
+   "quantity": 3.2,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "DES007",
+   "quantity": 0.4,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-09-26",
+   "item": "DES003",
+   "quantity": 3.2,
+   "kind": "evento",
+   "event": "EV004",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "DES001",
+   "quantity": 4.5,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "DES002",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "DES007",
+   "quantity": 0.45,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-03",
+   "item": "DES003",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV005",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "DES001",
+   "quantity": 11.0,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "DES002",
+   "quantity": 8.8,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "DES007",
+   "quantity": 1.1,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-10",
+   "item": "DES003",
+   "quantity": 8.8,
+   "kind": "evento",
+   "event": "EV006",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "DES001",
+   "quantity": 7.5,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "DES002",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "DES007",
+   "quantity": 0.75,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-17",
+   "item": "DES003",
+   "quantity": 6.0,
+   "kind": "evento",
+   "event": "EV007",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "DES001",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "DES002",
+   "quantity": 3.0,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  },
+  {
+   "date": "2026-10-24",
+   "item": "DES003",
+   "quantity": 3.6,
+   "kind": "evento",
+   "event": "EV008",
+   "note": ""
+  }
+ ],
+ "expenses": [
+  {
+   "date": "2026-09-05",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV001",
+   "supplier": "Freelancers",
+   "amount": 2160.0,
+   "payment": "PIX",
+   "event": "EV001"
+  },
+  {
+   "date": "2026-09-05",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV001",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV001"
+  },
+  {
+   "date": "2026-09-05",
+   "category": "Locação de equipamentos e louças",
+   "description": "Louças e mesas EV001",
+   "supplier": "Locadora Festa",
+   "amount": 1800.0,
+   "payment": "Boleto",
+   "event": "EV001"
+  },
+  {
+   "date": "2026-09-12",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV002",
+   "supplier": "Freelancers",
+   "amount": 1200.0,
+   "payment": "PIX",
+   "event": "EV002"
+  },
+  {
+   "date": "2026-09-12",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV002",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV002"
+  },
+  {
+   "date": "2026-09-19",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV003",
+   "supplier": "Freelancers",
+   "amount": 1440.0,
+   "payment": "PIX",
+   "event": "EV003"
+  },
+  {
+   "date": "2026-09-19",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV003",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV003"
+  },
+  {
+   "date": "2026-09-26",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV004",
+   "supplier": "Freelancers",
+   "amount": 960.0,
+   "payment": "PIX",
+   "event": "EV004"
+  },
+  {
+   "date": "2026-09-26",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV004",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV004"
+  },
+  {
+   "date": "2026-10-03",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV005",
+   "supplier": "Freelancers",
+   "amount": 1080.0,
+   "payment": "PIX",
+   "event": "EV005"
+  },
+  {
+   "date": "2026-10-03",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV005",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV005"
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV006",
+   "supplier": "Freelancers",
+   "amount": 2640.0,
+   "payment": "PIX",
+   "event": "EV006"
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV006",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV006"
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Locação de equipamentos e louças",
+   "description": "Louças e mesas EV006",
+   "supplier": "Locadora Festa",
+   "amount": 1800.0,
+   "payment": "Boleto",
+   "event": "EV006"
+  },
+  {
+   "date": "2026-10-17",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV007",
+   "supplier": "Freelancers",
+   "amount": 1800.0,
+   "payment": "PIX",
+   "event": "EV007"
+  },
+  {
+   "date": "2026-10-17",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV007",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV007"
+  },
+  {
+   "date": "2026-10-24",
+   "category": "Freelancers (garçons, copeiros, cozinheiros)",
+   "description": "Equipe extra EV008",
+   "supplier": "Freelancers",
+   "amount": 720.0,
+   "payment": "PIX",
+   "event": "EV008"
+  },
+  {
+   "date": "2026-10-24",
+   "category": "Transporte/frete de eventos",
+   "description": "Frete EV008",
+   "supplier": "Transportadora",
+   "amount": 300.0,
+   "payment": "PIX",
+   "event": "EV008"
+  },
+  {
+   "date": "2026-09-05",
+   "category": "Salários",
+   "description": "Folha — 3 funcionários",
+   "supplier": "Equipe fixa",
+   "amount": 7000.0,
+   "payment": "Transferência",
+   "event": null
+  },
+  {
+   "date": "2026-09-05",
+   "category": "Encargos (INSS, FGTS)",
+   "description": "Encargos da folha",
+   "supplier": "Governo",
+   "amount": 2300.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-09-05",
+   "category": "Benefícios (VT, VA)",
+   "description": "Vale-alimentação e transporte",
+   "supplier": "Operadora VA",
+   "amount": 1100.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-09-05",
+   "category": "Pró-labore",
+   "description": "Pró-labore sócio",
+   "supplier": "Sócio",
+   "amount": 4000.0,
+   "payment": "Transferência",
+   "event": null
+  },
+  {
+   "date": "2026-10-05",
+   "category": "Salários",
+   "description": "Folha — 3 funcionários",
+   "supplier": "Equipe fixa",
+   "amount": 7000.0,
+   "payment": "Transferência",
+   "event": null
+  },
+  {
+   "date": "2026-10-05",
+   "category": "Encargos (INSS, FGTS)",
+   "description": "Encargos da folha",
+   "supplier": "Governo",
+   "amount": 2300.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-10-05",
+   "category": "Benefícios (VT, VA)",
+   "description": "Vale-alimentação e transporte",
+   "supplier": "Operadora VA",
+   "amount": 1100.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-10-05",
+   "category": "Pró-labore",
+   "description": "Pró-labore sócio",
+   "supplier": "Sócio",
+   "amount": 4000.0,
+   "payment": "Transferência",
+   "event": null
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Aluguel",
+   "description": "Salão e cozinha",
+   "supplier": "Imobiliária",
+   "amount": 4500.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-09-10",
+   "category": "IPTU / condomínio",
+   "description": "IPTU parcela",
+   "supplier": "Prefeitura",
+   "amount": 400.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Aluguel",
+   "description": "Salão e cozinha",
+   "supplier": "Imobiliária",
+   "amount": 4500.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "IPTU / condomínio",
+   "description": "IPTU parcela",
+   "supplier": "Prefeitura",
+   "amount": 400.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Energia elétrica",
+   "description": "Conta de luz",
+   "supplier": "Concessionária",
+   "amount": 1800.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Água e esgoto",
+   "description": "Conta de água",
+   "supplier": "Saneamento",
+   "amount": 600.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Gás GLP",
+   "description": "Botijões P45",
+   "supplier": "Distribuidora de gás",
+   "amount": 1400.0,
+   "payment": "PIX",
+   "event": null
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Internet e telefone",
+   "description": "Plano empresarial",
+   "supplier": "Operadora",
+   "amount": 250.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Energia elétrica",
+   "description": "Conta de luz",
+   "supplier": "Concessionária",
+   "amount": 2100.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Água e esgoto",
+   "description": "Conta de água",
+   "supplier": "Saneamento",
+   "amount": 600.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Gás GLP",
+   "description": "Botijões P45",
+   "supplier": "Distribuidora de gás",
+   "amount": 1400.0,
+   "payment": "PIX",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Internet e telefone",
+   "description": "Plano empresarial",
+   "supplier": "Operadora",
+   "amount": 250.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-09-05",
+   "category": "Comissões de venda",
+   "description": "Comissão cerimonialista EV001",
+   "supplier": "Cerimonialista",
+   "amount": 783.0,
+   "payment": "PIX",
+   "event": "EV001"
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Marketing e anúncios",
+   "description": "Instagram/Google Ads",
+   "supplier": "Meta / Google",
+   "amount": 1200.0,
+   "payment": "Cartão",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Marketing e anúncios",
+   "description": "Instagram/Google Ads",
+   "supplier": "Meta / Google",
+   "amount": 1200.0,
+   "payment": "Cartão",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Comissões de venda",
+   "description": "Comissão cerimonialista EV006",
+   "supplier": "Cerimonialista",
+   "amount": 990.0,
+   "payment": "PIX",
+   "event": "EV006"
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Contabilidade",
+   "description": "Honorários",
+   "supplier": "Escritório contábil",
+   "amount": 900.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-09-10",
+   "category": "Sistemas e software",
+   "description": "Sistema de gestão",
+   "supplier": "Software",
+   "amount": 200.0,
+   "payment": "Cartão",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Contabilidade",
+   "description": "Honorários",
+   "supplier": "Escritório contábil",
+   "amount": 900.0,
+   "payment": "Boleto",
+   "event": null
+  },
+  {
+   "date": "2026-10-10",
+   "category": "Sistemas e software",
+   "description": "Sistema de gestão",
+   "supplier": "Software",
+   "amount": 200.0,
+   "payment": "Cartão",
+   "event": null
+  },
+  {
+   "date": "2026-10-22",
+   "category": "Manutenção de equipamentos",
+   "description": "Conserto de forno combinado",
+   "supplier": "Técnico",
+   "amount": 650.0,
+   "payment": "PIX",
+   "event": null
+  },
+  {
+   "date": "2026-09-28",
+   "category": "Depreciação",
+   "description": "Equipamentos de cozinha e mobiliário",
+   "supplier": "—",
+   "amount": 1200.0,
+   "payment": "",
+   "event": null
+  },
+  {
+   "date": "2026-10-28",
+   "category": "Depreciação",
+   "description": "Equipamentos de cozinha e mobiliário",
+   "supplier": "—",
+   "amount": 1200.0,
+   "payment": "",
+   "event": null
+  },
+  {
+   "date": "2026-09-28",
+   "category": "Tarifas bancárias / maquininha",
+   "description": "Tarifas e taxas de cartão",
+   "supplier": "Banco",
+   "amount": 380.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-10-28",
+   "category": "Tarifas bancárias / maquininha",
+   "description": "Tarifas e taxas de cartão",
+   "supplier": "Banco",
+   "amount": 380.0,
+   "payment": "Débito automático",
+   "event": null
+  },
+  {
+   "date": "2026-09-28",
+   "category": "Rendimentos de aplicações",
+   "description": "Rendimento CDB",
+   "supplier": "Banco",
+   "amount": 150.0,
+   "payment": "",
+   "event": null
+  },
+  {
+   "date": "2026-10-28",
+   "category": "Rendimentos de aplicações",
+   "description": "Rendimento CDB",
+   "supplier": "Banco",
+   "amount": 150.0,
+   "payment": "",
+   "event": null
+  }
+ ]
+}

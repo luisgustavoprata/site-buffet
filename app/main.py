@@ -33,7 +33,7 @@ from app.ipguard import COOKIE, COUNTRY_URLS, VPN_URLS, IpGuard, env_sources, pa
 from app.models import Image, SiteContent, utcnow
 from app.notifications import run_due
 from app.ratelimit import LoginLimiter
-from app.routers import auth, dashboard, portfolio, push, quotes, site
+from app.routers import auth, gestao, portfolio, push, quotes, site
 from app.security import hash_password
 from app.seed import DEMO_CLIENT, DEMO_OWNER, ensure_owner, remove_demo_accounts, seed_demo
 from app.services import SITE_ID, delete_orphan_images
@@ -329,7 +329,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         portfolio.router,
         quotes.router,
         push.router,
-        dashboard.router,
+        gestao.router,
     ):
         app.include_router(router)
 

@@ -49,7 +49,8 @@ def test_openapi_lists_every_route(client):
         "/quotes/{quote_id}/messages",
         "/admin/quotes/{quote_id}",
         "/admin/clients",
-        "/admin/dashboard",
+        "/admin/gestao/dre",
+        "/admin/gestao/importar",
     } <= paths
 
 
@@ -122,11 +123,12 @@ def test_demo_has_example_results(settings):
     with TestClient(create_app(demo)) as client:
         login = {"username": DEMO_OWNER[0], "password": DEMO_OWNER[1]}
         token = client.post("/auth/token", data=login).json()["access_token"]
-        response = client.get("/admin/dashboard", headers={"Authorization": f"Bearer {token}"})
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.get("/admin/gestao/dre", params={"ano": 2026}, headers=headers)
         assert response.status_code == 200, response.json()
-        data = response.json()["data"]
-        assert data["dre"]["receitaBruta"]["t"] > 0
-        assert data["estoque"]
+        gross = next(line for line in response.json()["lines"] if line["key"] == "gross")
+        assert gross["total"] == 122050  # a mesma receita da planilha de exemplo
+        assert len(client.get("/admin/gestao/insumos", headers=headers).json()) == 99
 
 
 def test_turning_demo_off_removes_the_demo_accounts(settings):

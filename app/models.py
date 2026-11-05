@@ -5,9 +5,11 @@ from datetime import UTC, date, datetime
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     Date,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
     LargeBinary,
@@ -283,16 +285,143 @@ class AppSecret(Base):
     value: Mapped[str] = mapped_column(Text)
 
 
-class Dashboard(Base):
-    """Os números da planilha do buffet (estoque, DRE, precificação), enviados pela dona no
-    painel. A planilha é lida no navegador; aqui fica só o resumo. Existe uma linha só (id = 1).
-    """
+# ---------- Gestão: estoque, eventos, despesas e DRE (antes, a planilha do buffet) ----------
 
-    __tablename__ = "dashboard"
+
+class FinanceSettings(Base):
+    """Alíquotas e listas da gestão. Existe uma linha só (id = 1)."""
+
+    __tablename__ = "fin_settings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    file_name: Mapped[str] = mapped_column(String(200), default="")
-    data: Mapped[str] = mapped_column(Text)  # JSON
+    tax_rate: Mapped[float] = mapped_column(Float, default=0.08)  # sobre o faturamento
+    income_tax_rate: Mapped[float] = mapped_column(Float, default=0.0)  # IR/CSLL sobre o lucro
+    item_categories: Mapped[list] = mapped_column(JSON, default=list)
+    units: Mapped[list] = mapped_column(JSON, default=list)
+    event_types: Mapped[list] = mapped_column(JSON, default=list)
+    payment_methods: Mapped[list] = mapped_column(JSON, default=list)
+
+
+class ExpenseCategory(Base):
+    """Categoria de despesa e a linha do DRE em que ela cai (ex.: Aluguel → Ocupação)."""
+
+    __tablename__ = "fin_expense_categories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), unique=True)
+    group: Mapped[str] = mapped_column(String(40))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class StockItem(Base):
+    """Insumo do estoque. Saldo e custo médio vêm das compras e das saídas."""
+
+    __tablename__ = "fin_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    category: Mapped[str] = mapped_column(String(60))
+    unit: Mapped[str] = mapped_column(String(20))
+    min_stock: Mapped[float] = mapped_column(Float, default=0)
+    initial_stock: Mapped[float] = mapped_column(Float, default=0)
+    initial_cost: Mapped[float] = mapped_column(Float, default=0)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class FinanceEvent(Base):
+    """Evento vendido: a receita do DRE. Pode ter nascido de um pedido de orçamento do site."""
+
+    __tablename__ = "fin_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    event_date: Mapped[date] = mapped_column(Date, index=True)
+    client: Mapped[str] = mapped_column(String(120))
+    event_type: Mapped[str] = mapped_column(String(40))
+    guests: Mapped[int] = mapped_column(Integer)
+    price_per_guest: Mapped[float] = mapped_column(Float)
+    discount: Mapped[float] = mapped_column(Float, default=0)
+    status: Mapped[str] = mapped_column(String(20), default="orcamento")
+    quote_id: Mapped[int | None] = mapped_column(
+        ForeignKey("quotes.id", ondelete="SET NULL"), default=None
+    )
+    notes: Mapped[str] = mapped_column(Text, default="")
+
+
+class StockIn(Base):
+    """Compra de insumo: vira estoque (não é despesa)."""
+
+    __tablename__ = "fin_stock_in"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    entry_date: Mapped[date] = mapped_column(Date, index=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey("fin_items.id", ondelete="RESTRICT"))
+    quantity: Mapped[float] = mapped_column(Float)
+    unit_cost: Mapped[float] = mapped_column(Float)
+    supplier: Mapped[str] = mapped_column(String(120), default="")
+    invoice: Mapped[str] = mapped_column(String(40), default="")
+
+    item: Mapped[StockItem] = relationship(lazy="joined")
+
+
+class StockOut(Base):
+    """Saída de insumo. `unit_cost` é o custo médio do dia da saída (recalculado se uma compra
+    anterior for lançada ou corrigida depois); compras mais novas não mudam o passado."""
+
+    __tablename__ = "fin_stock_out"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    entry_date: Mapped[date] = mapped_column(Date, index=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey("fin_items.id", ondelete="RESTRICT"))
+    quantity: Mapped[float] = mapped_column(Float)
+    kind: Mapped[str] = mapped_column(String(20))  # evento | perda | consumo
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("fin_events.id", ondelete="SET NULL"), default=None
+    )
+    unit_cost: Mapped[float] = mapped_column(Float, default=0)
+    note: Mapped[str] = mapped_column(String(200), default="")
+
+    item: Mapped[StockItem] = relationship(lazy="joined")
+    event: Mapped[FinanceEvent | None] = relationship(lazy="joined")
+
+
+class Expense(Base):
+    """Despesa (ou receita financeira): a categoria define a linha do DRE."""
+
+    __tablename__ = "fin_expenses"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    entry_date: Mapped[date] = mapped_column(Date, index=True)
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("fin_expense_categories.id", ondelete="RESTRICT")
+    )
+    description: Mapped[str] = mapped_column(String(200), default="")
+    supplier: Mapped[str] = mapped_column(String(120), default="")
+    amount: Mapped[float] = mapped_column(Float)
+    payment: Mapped[str] = mapped_column(String(40), default="")
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("fin_events.id", ondelete="SET NULL"), default=None
+    )
+
+    category: Mapped[ExpenseCategory] = relationship(lazy="joined")
+    event: Mapped[FinanceEvent | None] = relationship(lazy="joined")
+
+
+class PricingSim(Base):
+    """Simulação de preço de um evento: cardápio com o consumo por convidado."""
+
+    __tablename__ = "fin_pricing"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    event_type: Mapped[str] = mapped_column(String(40), default="")
+    guests: Mapped[int] = mapped_column(Integer)
+    safety_margin: Mapped[float] = mapped_column(Float, default=0.1)
+    profit_margin: Mapped[float] = mapped_column(Float, default=0.2)
+    charged_per_guest: Mapped[float | None] = mapped_column(Float, default=None)
+    # [{"item_id": 1, "kind": "Comida", "per_guest": 0.12}]
+    items: Mapped[list] = mapped_column(JSON, default=list)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
     )

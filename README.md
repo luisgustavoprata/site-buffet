@@ -55,14 +55,19 @@ servida pela própria API.
   (arrastando), reordenar e escolher a capa.
 - **Textos e fotos do site**: capa, biografia, história, contato e todas as fotos.
 - **Clientes**: todos os cadastrados, com contato e quantidade de pedidos.
-- **Resultados**: a central de números do buffet, lida da planilha de estoque, DRE e
-  precificação (.ods ou .xlsx). Mostra receita, lucro e margem do ano, eventos e convidados,
-  ticket por convidado, valor em estoque, preço sugerido por pessoa e os itens para repor, com
-  gráficos de receita x custos por mês, despesas por grupo, receita x insumos por evento,
-  composição do preço por pessoa e estoque por tipo.
-  No computador (Chrome ou Edge), a dona conecta o arquivo uma vez: a cada Ctrl+S no
-  LibreOffice o painel relê a planilha em até 2 segundos e envia o resumo ao site. No celular,
-  o painel mostra os últimos números enviados.
+- **Gestão**: o que antes era a planilha de estoque, DRE e precificação, agora dentro do
+  painel (computador e celular):
+  - **Resumo**: receita, lucro e margem do ano, eventos, ticket por convidado, valor em
+    estoque, preço sugerido, itens para repor e próximos eventos, com gráficos.
+  - **DRE** gerencial mês a mês (regime de competência), com análise vertical e indicadores.
+  - **Eventos** (receita, CMV, custos diretos e margem de cada um), **Estoque** (saldo, custo
+    médio, situação e sugestão de compra), **Compras**, **Saídas** e **Despesas**.
+  - **Precificação**: simulações com o cardápio por convidado, preço sugerido e o que falta
+    comprar.
+  - **Configurações**: alíquotas, listas e categorias de despesa (com a linha do DRE); importar
+    a planilha antiga (.ods) e baixar tudo em .xlsx (cópia de segurança / contador).
+  - Na conversa de um orçamento, "Criar evento na gestão" leva cliente, data e convidados.
+  - Custo médio móvel: cada saída usa o custo médio do dia em que aconteceu.
 - **Notificações**: quantos clientes ativaram, os horários sorteados de hoje e todas as
   mensagens que podem ser enviadas.
 
@@ -87,8 +92,8 @@ servida pela própria API.
 | Segurança | Senhas com PBKDF2 + sal, JWT que deixa de valer ao trocar a senha, limite de tentativas de login e de troca de senha, cada cliente só vê os próprios pedidos (pedido alheio responde 404), cadastro nunca cria administrador. Limites contra spam: 5 contas por conexão por hora, 5 pedidos por cliente por dia, 30 mensagens a cada 10 min. Envios acima de 12 MB recusados antes de ler. Cabeçalhos: CSP sem script dentro da página, HSTS (produção), Permissions-Policy, COOP, nosniff, frame-ancestors. Bibliotecas de CDN conferidas por hash (SRI). No CI: `pip-audit` (bibliotecas com falhas conhecidas) e `bandit` (padrões perigosos); Dependabot avisa de versões novas |
 | Qualidade | 132 testes com pytest rodando no SQLite **e no PostgreSQL** a cada push (GitHub Actions), Ruff |
 | Notificações | Web Push implementado no próprio projeto (RFC 8291 para cifrar, RFC 8292/VAPID para assinar), testado contra o exemplo oficial da RFC. Funciona no Chrome, Edge, Firefox e Safari (no iPhone, com o site adicionado à Tela de Início). A chave do site é gerada e guardada no banco. Só aceita endereços dos serviços de push conhecidos (Google, Mozilla, Apple, Microsoft) |
-| Resultados | A planilha é lida no navegador (SheetJS) e desenhada com Chart.js, os dois carregados só nessa aba. O arquivo nunca sai do computador: o site guarda só o resumo em JSON (`PUT /admin/dashboard`, até 2 MB, só a administração). Atualização ao vivo pela File System Access API, conferindo a data de alteração do arquivo a cada 2 s |
-| Hash das bibliotecas | Ao trocar a versão do SheetJS ou do Chart.js em `static/resultados.js`, gere o hash novo: `curl -s URL \| openssl dgst -sha384 -binary \| base64` e coloque como `sha384-...` |
+| Gestão | Contas em `app/finance.py`, rotas em `/admin/gestao/...` (só a administração). Chart.js (gráficos) e SheetJS (importar .ods / baixar .xlsx) são carregados só nessa aba; a planilha importada é lida no navegador |
+| Hash das bibliotecas | Ao trocar a versão do SheetJS ou do Chart.js em `static/gestao.js`, gere o hash novo: `curl -s URL \| openssl dgst -sha384 -binary \| base64` e coloque como `sha384-...` |
 | Entrega | Docker e Blueprint do Render (`render.yaml` com PostgreSQL; `render-demo.yaml` para demonstração) |
 
 ```
@@ -97,7 +102,7 @@ app/
 ├── models.py         # tabelas: usuários, conteúdo, fotos, eventos, pedidos, mensagens
 ├── schemas.py        # validação de entrada e formato de saída
 ├── images.py         # tratamento das fotos enviadas (Pillow)
-├── routers/          # auth, site, portfolio, quotes, push, dashboard
+├── routers/          # auth, site, portfolio, quotes, push, gestao
 ├── seed.py           # conta da administração e site de demonstração
 └── static/           # interface (HTML, CSS e JavaScript puro)
 ```

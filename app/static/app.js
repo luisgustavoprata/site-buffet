@@ -7,7 +7,7 @@
  * 5. Entrar, cadastro e pedido de orçamento
  * 6. Área do cliente e conversa
  * 7. Painel da administração
- *    (a aba Resultados, que lê a planilha do buffet, fica em resultados.js)
+ *    (a aba Gestão: estoque, eventos, despesas, DRE e precificação, fica em gestao.js)
  */
 "use strict";
 
@@ -716,7 +716,9 @@ const ROUTES = [
   [/^\/conta\/pedidos\/(\d+)$/, (m) => renderAccount(Number(m[1]))],
   [/^\/painel$/, () => renderAdmin("pedidos")],
   [/^\/painel\/pedidos\/(\d+)$/, (m) => renderAdmin("pedidos", Number(m[1]))],
-  [/^\/painel\/(resultados|portfolio|site|clientes|notificacoes)$/, (m) => renderAdmin(m[1])],
+  [/^\/painel\/resultados$/, () => go("/painel/gestao")], // endereço antigo
+  [/^\/painel\/gestao(?:\/([a-z]+))?$/, (m) => renderAdmin("gestao", m[1])],
+  [/^\/painel\/(portfolio|site|clientes|notificacoes)$/, (m) => renderAdmin(m[1])],
 ];
 
 let renderSeq = 0;
@@ -2029,7 +2031,8 @@ async function chatView(quoteId, { back, onStatus } = {}) {
     h("details", { class: "chat__details", open: window.innerWidth > 700 },
       h("summary", null, "Detalhes do pedido"),
       h("div", null, facts,
-        quote.details && h("p", { style: "font-size:14px;color:var(--ink-soft);white-space:pre-wrap" }, quote.details))));
+        quote.details && h("p", { style: "font-size:14px;color:var(--ink-soft);white-space:pre-wrap" }, quote.details),
+        owner && quoteFinanceLink(quote))));
 
   const chat = h("section", { class: "chat", "aria-label": "Conversa do pedido" }, head, body, compose);
   chat.addEventListener("dragover", (e) => {
@@ -2099,7 +2102,7 @@ function clientCard(c) {
 
 const ADMIN_TABS = [
   ["pedidos", "Orçamentos", "#/painel"],
-  ["resultados", "Resultados", "#/painel/resultados"],
+  ["gestao", "Gestão", "#/painel/gestao"],
   ["portfolio", "Portfólio", "#/painel/portfolio"],
   ["site", "Textos e fotos do site", "#/painel/site"],
   ["clientes", "Clientes", "#/painel/clientes"],
@@ -2122,7 +2125,7 @@ async function renderAdmin(tab, openId) {
       h("a", { href: "#", onclick: (e) => { e.preventDefault(); session.logout(); } }, "Sair")),
     main));
   pushInvite();
-  const views = { pedidos: adminQuotes, resultados: adminResults, portfolio: adminPortfolio, site: adminSite, clientes: adminClients, notificacoes: adminPush };
+  const views = { pedidos: adminQuotes, gestao: adminGestao, portfolio: adminPortfolio, site: adminSite, clientes: adminClients, notificacoes: adminPush };
   await views[tab](main, openId);
 }
 
