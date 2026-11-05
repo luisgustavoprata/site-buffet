@@ -425,3 +425,18 @@ class PricingSim(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
     )
+
+
+class MenuContent(Base):
+    """O cardápio do buffet (pacotes, coquetéis e pratos à escolha). Existe uma linha só (id = 1).
+
+    Sem linha no banco, vale o cardápio de app/menu_default.json.
+    """
+
+    __tablename__ = "menu_content"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    data: Mapped[dict] = mapped_column(JSON)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )

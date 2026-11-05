@@ -1,0 +1,287 @@
+{
+  "intro": "Conheça nossa seleção premium de comidas, ideais para a sua festa, seja ela qual for.",
+  "price_note": "Valor por pessoa, conforme a cerveja escolhida. Pratos com salmão ou camarão alteram o valor.",
+  "show_prices": true,
+  "packages": [
+    {
+      "name": "Buffet 1",
+      "subtitle": "Mesa de frios",
+      "description": "Bebidas, mesa de frios completa, jantar e fim de festa.",
+      "image": "/static/cardapio/buffet-1.jpg",
+      "prices": [
+        {"label": "Heineken", "value": 240},
+        {"label": "Original", "value": 230},
+        {"label": "Amstel", "value": 220}
+      ],
+      "sections": [
+        {"title": "Bebidas", "groups": [{"title": "", "items": [
+          "Água com e sem gás",
+          "Refrigerante normal e zero (Coca-Cola e Guaraná Antarctica)",
+          "Suco (laranja e uva)",
+          "Cerveja (o valor varia com a marca)"
+        ]}]},
+        {"title": "Entrada · Mesa de frios", "groups": [
+          {"title": "Queijos", "items": [
+            "Provolone", "Golda", "Gouda", "Prato", "Parmesão", "Brie", "Gorgonzola", "Grana Padano",
+            "Brie com mel e castanhas", "Brie com frutas vermelhas", "Queijo do reino"
+          ]},
+          {"title": "Defumados e embutidos", "items": [
+            "Salaminho italiano", "Copa", "Presunto parma", "Salaminho apimentado", "Lombo canadense",
+            "Picanha fatiada", "Peito de peru"
+          ]},
+          {"title": "Pastas, antepastos e carnes", "items": [
+            "Caponata de berinjela", "Carpaccio de pera com gorgonzola", "Carpaccio tradicional",
+            "Favo de mel com frutas", "Geleias e bruschettas", "Guacamole", "Ilha de antepastos",
+            "Lagarto desfiado", "Palmito e azeitonas", "Pasta de abacaxi", "Pasta de gorgonzola",
+            "Peras ao vinho tinto", "Quibe cru", "Seleção de pães", "Tabule", "Tartare de salmão",
+            "Terrine de camarão", "Terrine de figos"
+          ]},
+          {"title": "Volantes", "items": [
+            "Bolinho de bacalhau", "Pastelzinho de carne, queijo e camarão", "Panceta com goiabada"
+          ]}
+        ]},
+        {"title": "Jantar", "groups": [{"title": "", "items": [
+          "Arroz", "Filé ao molho roti", "Pappardelle ao molho branco trufado", "Talharim ao molho sugo",
+          "Robalo com tomatinhos e legumes brunoise", "Purê de batata", "Salada tropical"
+        ]}]},
+        {"title": "Fim de festa", "groups": [{"title": "", "items": ["Mini hambúrguer e batata frita"]}]}
+      ]
+    },
+    {
+      "name": "Buffet 2",
+      "subtitle": "Mesa de frios",
+      "description": "Bebidas, mesa de frios, sugestão do chef, jantar, sobremesa e fim de festa.",
+      "image": "/static/cardapio/buffet-2.jpg",
+      "prices": [
+        {"label": "Heineken", "value": 220},
+        {"label": "Original", "value": 210},
+        {"label": "Amstel", "value": 200}
+      ],
+      "sections": [
+        {"title": "Bebidas", "groups": [{"title": "", "items": [
+          "Água com e sem gás",
+          "Refrigerante normal e zero (Coca-Cola e Guaraná Antarctica)",
+          "Suco (laranja e uva)",
+          "Cerveja (o valor varia com a marca)"
+        ]}]},
+        {"title": "Entrada · Mesa de frios", "groups": [
+          {"title": "Queijos", "items": ["Provolone", "Golda", "Parmesão", "Brie com frutas vermelhas", "Queijo do reino"]},
+          {"title": "Defumados e embutidos", "items": [
+            "Salaminho italiano", "Copa", "Lombo canadense defumado", "Peito de peru", "Parma com figos frescos"
+          ]},
+          {"title": "Pastas", "items": ["Frango defumado", "Cream cheese com geleia de abacaxi", "Torta fria de salmão"]},
+          {"title": "Pães", "items": ["Sírio", "Batata", "Torrada temperada", "Grissini"]},
+          {"title": "Saladas e conservas", "items": [
+            "Salada de bacalhau", "Ovos de codorna", "Azeitonas verdes e pretas", "Picles de cenoura"
+          ]},
+          {"title": "Carnes", "items": ["Escabeche de lagarto", "Quibe cru ao azeite com crispy de batata-doce"]},
+          {"title": "Decoração", "items": ["Frutas secas e castanhas", "Cascata de frutas e favo de mel"]}
+        ]},
+        {"title": "Sugestão do chef", "groups": [{"title": "", "items": [
+          "Escondidinho de carne seca", "Drumete de frango com molho picante",
+          "Dadinho de tapioca com geleia de pimenta", "Camarão no creme de coco"
+        ]}]},
+        {"title": "Jantar", "groups": [{"title": "", "items": [
+          "Arroz branco", "Fraldinha assada na crosta de alho com mandioquinha na manteiga",
+          "Filé de frango aos quatro queijos", "Fettuccine à carbonara", "Salada tropical"
+        ]}]},
+        {"title": "Sobremesa", "groups": [{"title": "", "items": ["Mousse de Ninho com suspiros e morangos", "Mini pudins"]}]},
+        {"title": "Fim de festa", "groups": [{"title": "", "items": [
+          "Mini hambúrguer e batata frita", "Sanduíche de alcatra com molho especial", "Caldos variados (à escolha)"
+        ]}]}
+      ]
+    },
+    {
+      "name": "Buffet 3",
+      "subtitle": "Comida de boteco",
+      "description": "Bebidas, volantes de comida de boteco, jantar, sobremesa e fim de festa.",
+      "image": "/static/cardapio/buffet-3.jpg",
+      "prices": [
+        {"label": "Heineken", "value": 220},
+        {"label": "Original", "value": 210},
+        {"label": "Amstel", "value": 200}
+      ],
+      "sections": [
+        {"title": "Bebidas", "groups": [{"title": "", "items": [
+          "Água com e sem gás",
+          "Refrigerante normal e zero (Coca-Cola e Guaraná Antarctica)",
+          "Suco (laranja e uva)",
+          "Cerveja (o valor varia com a marca)"
+        ]}]},
+        {"title": "Entrada · Volantes de boteco", "groups": [{"title": "", "items": [
+          "Mini almôndegas com mandioca", "Cubinhos de queijo coalho empanados com mel", "Mix de pastéis",
+          "Torresminho com limão e geleia de pimenta", "Bolinho de arroz e bacalhau",
+          "Iscas de tilápia com molho tártaro"
+        ]}]},
+        {"title": "Jantar", "groups": [{"title": "", "items": [
+          "Arroz do chef", "Arroz branco", "Fraldinha assada na crosta de alho", "Filé de tilápia aos quatro queijos",
+          "Pernil assado com carpaccio de abacaxi e farofinha", "Salada tropical",
+          "Penne ao pesto com tomatinhos confitados e parmesão"
+        ]}]},
+        {"title": "Sobremesa", "groups": [{"title": "", "items": ["Mousse de Ninho com suspiros e morangos", "Mini pudins"]}]},
+        {"title": "Fim de festa", "groups": [{"title": "", "items": [
+          "Mini hambúrguer e batata frita", "Sanduíche de alcatra com molho especial", "Caldos variados (à escolha)"
+        ]}]}
+      ]
+    },
+    {
+      "name": "Buffet 4",
+      "subtitle": "Tábua de frios",
+      "description": "Bebidas, tábua de frios em cada mesa, jantar, sobremesa e fim de festa.",
+      "image": "/static/cardapio/buffet-4.jpg",
+      "prices": [
+        {"label": "Heineken", "value": 190},
+        {"label": "Original", "value": 180},
+        {"label": "Amstel", "value": 170}
+      ],
+      "sections": [
+        {"title": "Bebidas", "groups": [{"title": "", "items": [
+          "Água com e sem gás",
+          "Refrigerante normal e zero (Coca-Cola e Guaraná Antarctica)",
+          "Suco (laranja e uva)",
+          "Cerveja (o valor varia com a marca)"
+        ]}]},
+        {"title": "Entrada em cada mesa · Tábua de frios", "groups": [{"title": "", "items": [
+          "Queijos (provolone, ervas e do reino)", "Embutidos (salaminho, lombo canadense e copa)",
+          "Azeitonas e picles", "Ovos de codorna", "Frutas secas", "Molho especial"
+        ]}]},
+        {"title": "Jantar", "groups": [{"title": "", "items": [
+          "Arroz do chef", "Arroz branco", "Fraldinha assada na crosta de alho", "Filé de tilápia aos quatro queijos",
+          "Pernil assado com carpaccio de abacaxi e farofinha", "Salada tropical",
+          "Penne ao pesto com tomatinhos confitados e parmesão"
+        ]}]},
+        {"title": "Sobremesa", "groups": [{"title": "", "items": ["Mousse de Ninho com suspiros e morangos", "Mini pudins"]}]},
+        {"title": "Fim de festa", "groups": [{"title": "", "items": [
+          "Mini hambúrguer e batata frita", "Sanduíche de alcatra com molho especial", "Caldos variados (à escolha)"
+        ]}]}
+      ]
+    }
+  ],
+  "drinks": ["Refrigerante", "Suco", "Cerveja", "Água com e sem gás"],
+  "cocktails": [
+    {"name": "Moscow Mule", "text": "Vodca, limão-siciliano, xarope de gengibre, água com gás e espuma de gengibre."},
+    {"name": "Gin Tônica de Limão-Siciliano", "text": "Gin, limão-siciliano, água tônica e alecrim."},
+    {"name": "Aperol", "text": "Aperol, espumante Casa Perini, água com gás e laranja-baía."},
+    {"name": "Charmosa", "text": "Gin, morangos frescos, espumante Casa Perini e alecrim."},
+    {"name": "La Bella Sicilia", "text": "Vodca, limão-siciliano, xarope de limão-siciliano, capim-santo, água tônica e espuma de limão-siciliano."},
+    {"name": "Caipiroska de Paçoca", "text": "Vodca, paçoca, picolé de paçoca, licor de cacau e gelo."},
+    {"name": "Caipirinha de Limão", "text": "Cachaça, limão, xarope de açúcar e gelo."},
+    {"name": "Cajalemon", "text": "Fiu Fiu de cajazinha, blend de limão, picolé de cajá-manga, gelo e borda de sal."}
+  ],
+  "notes": [
+    "Todo o material necessário para o evento está incluso.",
+    "Crianças até 7 anos não pagam.",
+    "Crianças de 8 a 12 anos pagam meia.",
+    "A partir de 13 anos, o valor é o de adulto."
+  ],
+  "included": [
+    "1 garçom a cada 15 convidados",
+    "Maître",
+    "Porteiro",
+    "Mesas, toalhas e guardanapos",
+    "Pratos de jantar e de sobremesa de porcelana",
+    "Talheres de inox, copos e taças bistrô"
+  ],
+  "dishes_note": "Também fazemos comida de boteco, churrasco e guarnições.",
+  "dishes": [
+    {"title": "Arroz", "items": [
+      "Arroz branco", "Arroz com brócolis", "Arroz com castanhas", "Arroz à grega",
+      "Arroz com raspas de limão-siciliano e hortelã", "Arroz do chef (banana-da-terra, bacon e brócolis)",
+      "Arroz com camarão à internacional", "Arroz piamontese", "Baião de dois", "Arroz de moqueca"
+    ]},
+    {"title": "Risotos", "items": [
+      "Carne seca com abóbora", "Quatro queijos", "Tomate seco com champignon", "Parmesão", "Caprese",
+      "Abobrinha", "À milanesa", "Camarão", "Bacalhau", "Limão-siciliano", "Shitake", "Gorgonzola",
+      "Limão com alho-poró"
+    ]},
+    {"title": "Frango", "items": [
+      "Filé de frango aos quatro queijos", "Filé de frango à belle meunière", "Filé de frango com ervas",
+      "Filé de frango à califórnia", "Medalhão de frango ao molho funghi", "Fricassê de frango", "Frango xadrez",
+      "Coxa e sobrecoxa desossada assada com minibatatas", "Frango caipira ao molho"
+    ]},
+    {"title": "Carne vermelha", "items": [
+      "Filé ao molho escuro com vinho tinto", "Filé ao molho de vinho", "Filé ao creme de manjericão",
+      "Filé ao demi-glace com pimenta poivre", "Filé ao molho mostarda", "Filé ao creme trufado",
+      "Filé ao molho gorgonzola", "Filé entrelaçado com bacon ao molho de laranja", "Filé ao creme de ervas finas",
+      "Filé à parmegiana", "Filé ao creme de cogumelos", "Filé ao molho de pimenta poivre",
+      "Escalope de filé-mignon ao molho de catupiry", "Lagarto de panela", "Alcatra ao forno com minibatatas",
+      "Maminha ao forno regada com cerveja preta", "Bife ancho na manteiga com sálvia", "Carré de cordeiro",
+      "Paleta de cordeiro", "Fraldinha"
+    ]},
+    {"title": "Carne suína", "items": [
+      "Lombo ao creme de iogurte", "Lombo entrelaçado com bacon", "Pernil com carpaccio de abacaxi",
+      "Costelinha barbecue", "Carré suíno com sálvia"
+    ]},
+    {"title": "Peixes e frutos do mar", "items": [
+      "Surubim à belle meunière (alcaparras, champignon e camarão)", "Moqueca de peixe",
+      "Filé de pintado com ervas finas", "Filé de pintado aos quatro queijos", "Filé de tilápia à parmegiana",
+      "Filé de tilápia grelhado com legumes na manteiga", "Salmão ao creme de maracujá",
+      "Salmão grelhado com alcaparras", "Bacalhau com natas", "Brandade de bacalhau com banana-da-terra",
+      "Camarão", "Camarão cremoso", "Bobó de camarão", "Polvo", "Paella", "Robalo"
+    ]},
+    {"title": "Saladas", "items": [
+      "Salada tropical", "Salada russa", "Salada italiana", "Salada portuguesa (bacalhau)", "Salada mexicana",
+      "Salpicão", "Salada de frango com nozes e uva verde", "Mix de folhas", "Salada carolina",
+      "Salada fattoush (pepino e rabanete)", "Salada niçoise (base de atum)",
+      "Farfalle à dorê (salmão em cubos regado ao azeite)", "Salada verde com pera e nozes",
+      "Salada crocante (com molho de iogurte)", "Salada de maionese", "Salada caprese", "Salada brunoise",
+      "Salada caesar de camarão, frango ou filé"
+    ]},
+    {"title": "Massas", "items": [
+      "Rondelli", "Canelone", "Penne", "Talharim", "Conchiglie", "Conchiglione", "Panqueca", "Lasanha",
+      "Ravióli", "Espaguete", "Pappardelle", "Nhoque", "Farfalle", "Carbonara"
+    ]},
+    {"title": "Molhos", "items": [
+      "Quatro queijos", "Sugo", "Branco", "Bolonhesa", "Carbonara (bacon e parmesão)", "Rosé",
+      "Funghi (champignon)", "Creme de manjericão", "Roti", "Demi-glace", "Alfredo", "Pomodoro",
+      "Mostarda Dijon", "Manga", "Maracujá"
+    ]},
+    {"title": "Farofas", "items": [
+      "Bacon com banana-da-terra", "Bacon e abacaxi", "Bacon, uva-passa e banana", "Cebola",
+      "Legumes salteados"
+    ]},
+    {"title": "Entradas e volantes", "items": [
+      "Batata frita", "Batatas crocantes com ervas e queijo", "Bolinho de arroz", "Bolinho de bacalhau",
+      "Brie folhado (massa filo, mel, mix de castanhas e figo)",
+      "Bruschetta com creme azedo, rúcula, parma e azeite", "Bruschetta pomodoro", "Burrata",
+      "Burrata com tomate-cereja", "Calabresa com torresmo", "Camarão com aspargos",
+      "Camarão com banana-da-terra", "Camarão empanado",
+      "Canapé de damasco, brie, nozes e geleia de morango ou mel",
+      "Carpaccio tradicional", "Carpaccio trufado quente", "Casquinha de bacalhau", "Casquinha de camarão",
+      "Casquinha de siri", "Ceviche de salmão", "Ceviche de tilápia", "Chips de batata-doce",
+      "Cone de frios com castanhas, frutas, palito de parmesão e alecrim", "Costelinha frita",
+      "Coxinha de frango", "Croquete de carne seca", "Croquete de frango", "Dadinho de tapioca com geleia",
+      "Favo de mel com frutas", "Filezinho com requeijão e torradas",
+      "Maçã assada com mel, nozes, canela e hortelã", "Manta de búfala recheada com tomate seco e rúcula",
+      "Massa folhada com pera, camembert, tomilho, nozes e mel",
+      "Massa folhada de maçã com geleia de damasco",
+      "Massa folhada com pesto, tomate italiano e abobrinha", "Mini almôndegas", "Mini almôndegas com mandioca",
+      "Mini chica doida", "Mini empada aberta de tomatinho e gorgonzola com redução de figo e manjericão",
+      "Mini manta de búfala com cream cheese, abacaxi e damasco",
+      "Mini rocambole folhado com creme de ricota, azeitona preta e parmesão", "Mini taças com mix de castanhas",
+      "Palito de búfala com tomate seco e rúcula", "Palito de salaminho com queijo de búfala",
+      "Palito folhado de parmesão com ervas", "Panceta com goiabada", "Pastelzinho de camarão, carne ou queijo",
+      "Patê de abacaxi", "Patê de frango", "Pera ao camembert com nozes, mel e mirtilo",
+      "Queijo brie com rúcula, parma, amêndoas e redução de balsâmico",
+      "Queijo brie folhado com mel ou frutas vermelhas", "Queijo brie com mel, mirtilo, morango e figo",
+      "Queijo meia-cura empanado", "Quibe cru", "Quiche de alho-poró", "Quiche de queijo",
+      "Rolinho de abobrinha com cream cheese, salmão e molho de maracujá",
+      "Roll de pistache com brie, cream cheese, marmelada de figo, nozes e mel",
+      "Rolinho com cream cheese, ervas, camarão e gergelim preto",
+      "Salada com manga, abacate, romã, alface e cebola roxa",
+      "Salada com camarão, azeitona preta, romã, nozes, limão e hortelã", "Salada caesar de camarão",
+      "Salada caprese", "Salada trufada",
+      "Saladinha de grão-de-bico, batata, brócolis e cebola roxa", "Seleção de pães", "Steak tartare",
+      "Tábua de frios", "Tartare de rabanete com azeite e flor de sal",
+      "Terrine de ricota, cream cheese, alho-poró, bacon e parma", "Terrine de ricota, cream cheese, nozes e manjericão",
+      "Terrine de salmão marinado", "Terrine de camarão", "Terrine de figo, parma e uva verde",
+      "Terrine de frutos do mar", "Terrine de ricota, cream cheese, tomate-cereja e pesto", "Tilápia frita",
+      "Torresmo", "Tortilha com camarão, creme branco, tomate e muçarela",
+      "Vinagrete de abacate com salmão e azeite trufado"
+    ]},
+    {"title": "Final de festa", "items": [
+      "Caldos (feijão, frango e vaca atolada)", "Chica doida", "Pastel", "Mini hambúrguer", "Carreteiro",
+      "Batata frita", "Salgadinhos"
+    ]}
+  ]
+}

@@ -18,6 +18,7 @@ const GESTAO_TABS = [
   ["saidas", "Saídas"],
   ["despesas", "Despesas"],
   ["precificacao", "Precificação"],
+  ["cardapio", "Cardápio"],
   ["config", "Configurações"],
 ];
 const GESTAO_LIBS = {
@@ -339,7 +340,7 @@ async function adminGestao(main, sub = "resumo") {
     return;
   }
   const views = { resumo: finResumo, dre: finDre, eventos: finEventos, estoque: finEstoque, compras: finCompras,
-    saidas: finSaidas, despesas: finDespesas, precificacao: finPrecificacao, config: finConfig };
+    saidas: finSaidas, despesas: finDespesas, precificacao: finPrecificacao, cardapio: finCardapio, config: finConfig };
   await views[sub](content, reload);
 }
 
@@ -893,6 +894,211 @@ async function finPrecificacao(content) {
     calc();
   }
   paintAll();
+}
+
+/* ---------- Cardápio: o que o buffet serve (o mesmo da página inicial) ---------- */
+
+const MENU_PHOTOS = [
+  ["/static/cardapio/buffet-1.jpg", "Mesa de frios (carpaccio)"],
+  ["/static/cardapio/buffet-2.jpg", "Mesa de frios (frutas e queijos)"],
+  ["/static/cardapio/buffet-3.jpg", "Comida de boteco (caprese)"],
+  ["/static/cardapio/buffet-4.jpg", "Tábua de frios"],
+  ["/static/cardapio/capa.jpg", "Camarão (capa do cardápio)"],
+  ["/static/cardapio/mesa.jpg", "Mesa com favo de mel"],
+];
+// Texto de edição: "# Seção", "## Grupo" e um item por linha.
+const sectionsToText = (sections) => sections.map((s) => [`# ${s.title}`,
+  ...s.groups.flatMap((g) => [g.title ? `## ${g.title}` : null, ...g.items].filter((x) => x !== null))].join("\n")).join("\n\n");
+function textToSections(text) {
+  const out = [];
+  for (const raw of String(text).split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith("## ")) {
+      if (!out.length) out.push({ title: "Itens", groups: [] });
+      out[out.length - 1].groups.push({ title: line.slice(3).trim(), items: [] });
+    } else if (line.startsWith("# ")) {
+      out.push({ title: line.slice(2).trim(), groups: [] });
+    } else {
+      if (!out.length) out.push({ title: "Itens", groups: [] });
+      const sec = out[out.length - 1];
+      if (!sec.groups.length) sec.groups.push({ title: "", items: [] });
+      sec.groups[sec.groups.length - 1].items.push(line.replace(/^[-•·]\s*/, ""));
+    }
+  }
+  out.forEach((s) => { s.groups = s.groups.filter((g) => g.items.length); });
+  return out.filter((s) => s.groups.length);
+}
+const linesOf = (text) => String(text).split("\n").map((x) => x.trim().replace(/^[-•·]\s*/, "")).filter(Boolean);
+
+async function finCardapio(content) {
+  let menu = await api.get("/admin/menu");
+  const search = h("input", { class: "input", type: "search", placeholder: "Buscar prato (ex.: camarão, risoto, brie)", "aria-label": "Buscar prato" });
+  const results = h("div", { class: "fin-menu__results", "aria-live": "polite" });
+  const body = h("div", { class: "fin-menu" });
+
+  function everyDish() {
+    const all = [];
+    menu.packages.forEach((p) => p.sections.forEach((s) => s.groups.forEach((g) => g.items.forEach((it) =>
+      all.push({ name: it, where: [p.name, s.title, g.title].filter(Boolean).join(" › ") })))));
+    menu.dishes.forEach((d) => d.items.forEach((it) => all.push({ name: it, where: `Pratos à escolha › ${d.title}` })));
+    menu.cocktails.forEach((c) => all.push({ name: c.name, where: "Coquetéis" }));
+    return all;
+  }
+  const norm = (s) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  search.addEventListener("input", debounce(() => {
+    const q = norm(search.value.trim());
+    if (q.length < 2) return fill(results);
+    const found = everyDish().filter((d) => norm(d.name).includes(q));
+    fill(results, h("div", { class: "box" },
+      h("p", null, h("b", null, plural(found.length, "resultado", "resultados")), ` para “${search.value.trim()}”`),
+      found.length ? h("ul", { class: "fin-menu__found" }, found.slice(0, 80).map((d) => h("li", null, h("span", null, d.name), h("small", null, d.where))))
+        : h("p", { class: "muted" }, "Nenhum prato com esse nome.")));
+  }, 150));
+
+  function view() {
+    const count = (p) => p.sections.reduce((n, s) => n + s.groups.reduce((m, g) => m + g.items.length, 0), 0);
+    fill(body,
+      h("div", { class: "fin-menu__packages" }, menu.packages.map((p) => h("details", { class: "box fin-menu__pkg" },
+        h("summary", null,
+          p.image && h("img", { src: media(p.image), alt: "", loading: "lazy" }),
+          h("div", null,
+            h("h2", null, p.name, p.subtitle && h("span", null, ` · ${p.subtitle}`)),
+            h("p", { class: "muted" }, p.description),
+            h("p", { class: "fin-menu__meta" },
+              p.prices.map((x) => h("span", { class: "fin-pill fin-pill--muted" }, `${x.label} ${BRL0.format(x.value)}`)),
+              h("span", { class: "muted" }, ` ${plural(count(p), "item", "itens")} · clique para ver`)))),
+        h("div", { class: "fin-menu__sections" }, p.sections.map((s) => h("div", null,
+          h("h3", { class: "fin-h3" }, s.title),
+          s.groups.map((g) => [g.title && h("p", { class: "fin-menu__group" }, g.title), h("ul", null, g.items.map((it) => h("li", null, it)))]))))))),
+      h("div", { class: "box" },
+        h("div", { class: "box__head" }, h("h2", null, "Pratos à escolha"), h("span", { class: "muted" }, menu.dishes_note)),
+        h("div", { class: "fin-menu__dishes" }, menu.dishes.map((d) => h("details", null,
+          h("summary", null, d.title, h("small", null, ` ${d.items.length}`)),
+          h("ul", null, d.items.map((it) => h("li", null, it))))))),
+      h("div", { class: "form__row" },
+        h("div", { class: "box" }, h("h2", null, "Coquetéis"),
+          h("ul", { class: "fin-menu__found" }, menu.cocktails.map((c) => h("li", null, h("span", null, c.name), h("small", null, c.text))))),
+        h("div", { class: "box" }, h("h2", null, "Incluso e observações"),
+          h("ul", null, [...menu.included, ...menu.notes].map((t) => h("li", null, t))))));
+  }
+
+  function editor() {
+    const area = (label, name, value, rows, hint) => field({ label, name, as: "textarea", rows, value, hint });
+    const pkgBoxes = menu.packages.map((p, i) => {
+      const photo = h("select", { class: "input", name: `p${i}_image`, "aria-label": "Foto" },
+        h("option", { value: "" }, "Sem foto"),
+        [...MENU_PHOTOS, ...(p.image.startsWith("/media/") ? [[p.image, "Foto enviada"]] : [])].map(([v, t]) => h("option", { value: v, selected: v === p.image }, t)));
+      const upload = h("input", { type: "file", accept: "image/*", hidden: true });
+      upload.addEventListener("change", async () => {
+        const [id] = await uploadFiles(upload.files);
+        upload.value = "";
+        if (!id) return;
+        photo.append(h("option", { value: `/media/${id}` }, "Foto enviada agora"));
+        photo.value = `/media/${id}`;
+        toast("Foto enviada. Salve o cardápio para usar.");
+      });
+      return h("fieldset", { class: "box fin-menu__edit" },
+        h("legend", null, `Pacote ${i + 1}`),
+        h("div", { class: "form__row" },
+          field({ label: "Nome", name: `p${i}_name`, value: p.name, required: true, maxlength: 60 }),
+          field({ label: "Subtítulo", name: `p${i}_subtitle`, value: p.subtitle, maxlength: 80 })),
+        field({ label: "Descrição curta", name: `p${i}_description`, value: p.description, maxlength: 400 }),
+        h("div", { class: "form__row" },
+          area("Valores por pessoa", `p${i}_prices`, p.prices.map((x) => `${x.label}: ${numText(x.value, 2)}`).join("\n"), 3, "Um por linha. Ex.: Heineken: 240"),
+          h("div", { class: "field" }, h("label", { class: "field__label" }, "Foto"), photo,
+            h("button", { class: "link-btn", type: "button", style: "justify-self:start;margin-top:6px", onclick: () => upload.click() }, "Enviar outra foto"), upload)),
+        area("O que vem no pacote", `p${i}_sections`, sectionsToText(p.sections), 14, "“# ” abre uma etapa (ex.: # Jantar), “## ” um grupo (ex.: ## Queijos) e cada linha é um item."),
+        h("button", { class: "link-btn fin-del", type: "button", onclick: () => { if (confirm(`Tirar o ${p.name} do cardápio?`)) { collect(); menu.packages.splice(i, 1); editor(); } } }, "Tirar este pacote"));
+    });
+    const form = h("form", { class: "form fin-menu", novalidate: true },
+      h("div", { class: "box" },
+        h("h2", null, "Geral"),
+        field({ label: "Frase de abertura", name: "intro", value: menu.intro, maxlength: 400 }),
+        field({ label: "Observação dos valores", name: "price_note", value: menu.price_note, maxlength: 300 }),
+        h("label", { class: "fin-check" }, h("input", { type: "checkbox", name: "show_prices", checked: menu.show_prices }), " Mostrar os valores no site (desmarque para mostrar só os pratos)")),
+      pkgBoxes,
+      h("button", { class: "btn btn--ghost btn--small", type: "button", style: "justify-self:start", onclick: () => {
+        collect();
+        menu.packages.push({ name: `Buffet ${menu.packages.length + 1}`, subtitle: "", description: "", image: "", prices: [], sections: [] });
+        editor();
+      } }, "+ Novo pacote"),
+      h("div", { class: "box" },
+        h("h2", null, "Bebidas, coquetéis e observações"),
+        h("div", { class: "form__row" },
+          area("Bebidas", "drinks", menu.drinks.join("\n"), 4, "Uma por linha."),
+          area("Coquetéis", "cocktails", menu.cocktails.map((c) => (c.text ? `${c.name}: ${c.text}` : c.name)).join("\n"), 8, "Nome: ingredientes")),
+        h("div", { class: "form__row" },
+          area("Incluso em todos", "included", menu.included.join("\n"), 6, "Um por linha."),
+          area("Bom saber (crianças, materiais…)", "notes", menu.notes.join("\n"), 6, "Um por linha."))),
+      h("div", { class: "box" },
+        h("h2", null, "Pratos à escolha"),
+        field({ label: "Observação", name: "dishes_note", value: menu.dishes_note, maxlength: 300 }),
+        area("Pratos", "dishes", menu.dishes.map((d) => [`# ${d.title}`, ...d.items].join("\n")).join("\n\n"), 18, "“# ” abre uma categoria (ex.: # Risotos) e cada linha é um prato.")),
+      h("p", { class: "form__error", role: "alert", tabindex: "-1" }),
+      h("div", { class: "form__actions fin-menu__save" },
+        h("button", { class: "btn btn--ghost", type: "button", onclick: async () => {
+          if (!confirm("Voltar ao cardápio do PDF (2025)? As mudanças feitas aqui serão perdidas.")) return;
+          menu = await api.post("/admin/menu/restaurar");
+          toast("Cardápio do PDF restaurado.");
+          editor();
+        } }, "Voltar ao cardápio do PDF"),
+        h("span", { style: "flex:1" }),
+        h("button", { class: "btn btn--ghost", type: "button", onclick: view }, "Cancelar"),
+        h("button", { class: "btn btn--primary", type: "submit" }, "Salvar cardápio")));
+
+    function collect() {
+      const v = formValues(form);
+      menu.intro = v.intro || "";
+      menu.price_note = v.price_note || "";
+      menu.show_prices = !!form.elements.show_prices.checked;
+      menu.packages = menu.packages.map((p, i) => ({
+        name: v[`p${i}_name`] || p.name,
+        subtitle: v[`p${i}_subtitle`] || "",
+        description: v[`p${i}_description`] || "",
+        image: v[`p${i}_image`] || "",
+        prices: linesOf(v[`p${i}_prices`]).map((l) => {
+          const [label, value] = l.split(/:(?=[^:]*$)/);
+          const n = parseNum(value);
+          return { label: (label || "").trim() || "Valor", value: n === null || Number.isNaN(n) ? NaN : n };
+        }),
+        sections: textToSections(v[`p${i}_sections`]),
+      }));
+      menu.drinks = linesOf(v.drinks);
+      menu.cocktails = linesOf(v.cocktails).map((l) => {
+        const i = l.indexOf(":");
+        return i > 0 ? { name: l.slice(0, i).trim(), text: l.slice(i + 1).trim() } : { name: l, text: "" };
+      });
+      menu.included = linesOf(v.included);
+      menu.notes = linesOf(v.notes);
+      menu.dishes_note = v.dishes_note || "";
+      menu.dishes = textToSections(v.dishes).map((s) => ({ title: s.title, items: s.groups.flatMap((g) => g.items) }));
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      submitting(form, async () => {
+        collect();
+        const bad = menu.packages.find((p) => p.prices.some((x) => Number.isNaN(x.value)));
+        if (bad) throw Object.assign(new Error(`Confira os valores do ${bad.name}: use “Marca: 240”, um por linha.`), { errors: [] });
+        const { updated_at, ...payload } = menu;
+        menu = await api.put("/admin/menu", payload);
+        toast("Cardápio salvo. Já aparece no site.");
+        view();
+      });
+    });
+    fill(body, form);
+    form.querySelector("input")?.focus();
+  }
+
+  fill(content,
+    h("div", { class: "fin-bar" },
+      h("p", { class: "muted" }, "O cardápio do buffet, o mesmo que aparece na página inicial do site. Busque um prato para ver em que pacote ele está."),
+      h("div", { class: "fin-filters" }, search,
+        h("a", { class: "btn btn--ghost btn--small", href: "#/cardapio" }, "Ver no site"),
+        h("button", { class: "btn btn--primary btn--small", type: "button", onclick: editor }, "Editar cardápio"))),
+    results, body);
+  view();
 }
 
 /* ---------- Configurações, importação e exportação ---------- */

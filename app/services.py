@@ -9,9 +9,20 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.images import InvalidImage, process_upload
-from app.models import BioPhoto, EventPhoto, Image, SiteContent, utcnow
+from app.models import BioPhoto, EventPhoto, Image, MenuContent, SiteContent, utcnow
 
 SITE_ID = 1
+
+
+def menu_image_ids(db: Session) -> set[int]:
+    """Fotos enviadas para os pacotes do cardápio (guardadas como "/media/<id>")."""
+    row = db.get(MenuContent, 1)
+    ids = set()
+    for package in row.data.get("packages", []) if row else []:
+        image = str(package.get("image") or "")
+        if image.startswith("/media/") and image[7:].isdigit():
+            ids.add(int(image[7:]))
+    return ids
 
 
 def get_site(db: Session) -> SiteContent:
@@ -47,6 +58,7 @@ def delete_unused_images(db: Session, image_ids: Iterable[int]) -> None:
     site = db.get(SiteContent, SITE_ID)
     if site is not None:
         in_use |= {site.hero_image_id, site.owner_image_id, site.history_image_id}
+    in_use |= menu_image_ids(db)
     unused = ids - in_use
     if unused:
         db.execute(delete(Image).where(Image.id.in_(unused), Image.access_key.is_(None)))
@@ -86,7 +98,7 @@ def delete_orphan_images(db: Session, older_than: timedelta = timedelta(days=1))
     """
     site = db.get(SiteContent, SITE_ID)
     fields = (site.hero_image_id, site.owner_image_id, site.history_image_id) if site else ()
-    on_site = [i for i in fields if i]
+    on_site = [i for i in fields if i] + sorted(menu_image_ids(db))
     used = or_(
         Image.id.in_(select(BioPhoto.image_id)),
         Image.id.in_(select(EventPhoto.image_id)),

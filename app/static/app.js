@@ -442,6 +442,7 @@ function header({ over = false, minimal = false } = {}) {
     h("a", { href: "#/" }, "Início"),
     h("a", { href: "#/sobre" }, "Sobre"),
     h("a", { href: "#/historia" }, "Nossa história"),
+    h("a", { href: "#/cardapio" }, "Cardápio"),
     h("a", { href: "#/portfolio" }, "Portfólio"),
     h("a", { href: "#/contato" }, "Contato"));
   nav.addEventListener("click", () => bar.classList.remove("is-open"));
@@ -705,7 +706,7 @@ function pushCard({ owner = false } = {}) {
 
 const ROUTES = [
   [/^\/$/, () => renderHome()],
-  [/^\/(sobre|historia|contato)$/, (m) => renderHome(m[1])],
+  [/^\/(sobre|historia|cardapio|contato)$/, (m) => renderHome(m[1])],
   [/^\/portfolio$/, (m, q) => renderPortfolio(q)],
   [/^\/privacidade$/, () => renderPrivacy()],
   [/^\/portfolio\/(\d+)$/, (m) => renderEvent(Number(m[1]))],
@@ -904,6 +905,7 @@ async function renderHome(anchor) {
   const s = state.site;
   document.title = `${s.business_name} | ${s.tagline || "Buffet"}`;
   const occasions = h("div", { class: "occasions" });
+  const menuSlot = h("section", { class: "section menu", id: "cardapio", "aria-labelledby": "t-cardapio" });
   const featured = h("div", { class: "featured" }, loading());
   const years = s.founded_year ? new Date().getFullYear() - s.founded_year : 0;
   const ownerFirst = firstName(s.owner_name, "a gente");
@@ -978,6 +980,8 @@ async function renderHome(anchor) {
         sectionHead("Para cada ocasião", "Do brinde ao último doce", "Cardápio, montagem e serviço pensados para o tipo de festa que você vai receber.", "t-ocasioes"),
         occasions)),
 
+    menuSlot,
+
     s.included.length > 0 && h("section", { class: "section section--sand", "aria-labelledby": "t-inclui" },
       h("div", { class: "wrap" },
         sectionHead("Sem preocupação", "O que está incluído", "Você cuida dos convidados; o resto é com a gente.", "t-inclui"),
@@ -1027,7 +1031,8 @@ async function renderHome(anchor) {
   ], { over: Boolean(s.hero_image_id) });
 
   animateOnScroll();
-  if (anchor) requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
+  const menuReady = renderMenu(menuSlot);
+  if (anchor && anchor !== "cardapio") requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
   welcomeBar();
 
   let events = [];
@@ -1059,6 +1064,89 @@ async function renderHome(anchor) {
     : h("div", { class: "empty" }, "Os primeiros eventos aparecem aqui em breve."));
   animateOnScroll(occasions.parentElement);
   animateOnScroll(featured);
+  if (anchor === "cardapio") {
+    await menuReady; // o cardápio e as ocasiões já ocupam o lugar certo: agora dá para rolar até ele
+    requestAnimationFrame(() => menuSlot.scrollIntoView());
+  }
+}
+
+/* ---------- Cardápio (página inicial) ---------- */
+
+const MENU_BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+
+async function renderMenu(slot) {
+  let menu;
+  try {
+    menu = await api.get("/menu");
+  } catch {
+    slot.remove();
+    return;
+  }
+  if (!menu.packages.length && !menu.dishes.length) return slot.remove();
+  let current = 0;
+  const panel = h("div", { class: "menu__panel", role: "tabpanel", id: "menu-painel" });
+  const tabs = h("div", { class: "menu__tabs", role: "tablist", "aria-label": "Pacotes de buffet" });
+
+  const paintTabs = () => fill(tabs, menu.packages.map((p, i) => h("button", {
+    class: "menu__tab", type: "button", role: "tab", id: `menu-tab-${i}`, "aria-controls": "menu-painel",
+    "aria-selected": String(i === current), tabindex: i === current ? "0" : "-1",
+    onclick: () => { current = i; paintTabs(); paintPanel(); },
+    onkeydown: (e) => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      current = (current + step + menu.packages.length) % menu.packages.length;
+      paintTabs(); paintPanel();
+      tabs.children[current].focus();
+    },
+  }, h("strong", null, p.name), p.subtitle && h("span", null, p.subtitle))));
+
+  const paintPanel = () => {
+    const p = menu.packages[current];
+    if (!p) return fill(panel);
+    panel.setAttribute("aria-labelledby", `menu-tab-${current}`);
+    const minPrice = p.prices.length ? Math.min(...p.prices.map((x) => x.value)) : null;
+    fill(panel,
+      h("figure", { class: "menu__photo" },
+        p.image ? h("img", { src: media(p.image), alt: `${p.name}: ${p.subtitle}`, loading: "lazy" }) : h("div", { class: "menu__noimg" }),
+        minPrice !== null && h("figcaption", null, h("small", null, "a partir de"), MENU_BRL.format(minPrice), h("small", null, "por pessoa"))),
+      h("div", { class: "menu__body" },
+        h("p", { class: "eyebrow" }, p.name),
+        h("h3", { class: "menu__title" }, p.subtitle || p.name),
+        p.description && h("p", { class: "menu__desc" }, p.description),
+        p.prices.length > 0 && h("div", { class: "menu__prices" },
+          h("ul", null, p.prices.map((x) => h("li", null, h("span", null, `com ${x.label}`), h("strong", null, MENU_BRL.format(x.value))))),
+          menu.price_note && h("p", null, menu.price_note)),
+        h("div", { class: "menu__courses" }, p.sections.map((sec) => h("section", { class: "menu__course" },
+          h("h4", null, sec.title),
+          sec.groups.map((g) => h("div", { class: "menu__group" },
+            g.title && h("h5", null, g.title),
+            h("ul", { class: g.items.length > 6 ? "menu__list menu__list--cols" : "menu__list" }, g.items.map((it) => h("li", null, it)))))))),
+        h("a", { class: "btn btn--primary", href: "#/orcamento" }, `Pedir orçamento do ${p.name}`)));
+  };
+
+  const cocktails = menu.cocktails.length > 0 && h("div", { class: "menu__box menu__box--drinks reveal" },
+    h("h3", null, "Bebidas e coquetéis"),
+    menu.drinks.length > 0 && h("p", { class: "menu__muted" }, menu.drinks.join(" · ")),
+    h("ul", { class: "menu__cocktails" }, menu.cocktails.map((c) => h("li", null, h("strong", null, c.name), c.text && h("span", null, c.text)))));
+  const info = (menu.included.length || menu.notes.length) && h("div", { class: "menu__box reveal" },
+    menu.included.length > 0 && [h("h3", null, "Incluso em todos"), h("ul", { class: "menu__checks" }, menu.included.map((t) => h("li", null, t)))],
+    menu.notes.length > 0 && [h("h3", null, "Bom saber"), h("ul", { class: "menu__notes" }, menu.notes.map((t) => h("li", null, t)))]);
+  const dishes = menu.dishes.length > 0 && h("div", { class: "menu__dishes" },
+    h("div", { class: "menu__dishes-head" },
+      h("h3", null, "Pratos à escolha"),
+      h("p", null, "Monte o seu cardápio com a chef. ", menu.dishes_note)),
+    h("div", { class: "menu__dish-grid" }, menu.dishes.map((d) => h("details", { class: "menu__dish" },
+      h("summary", null, h("span", null, d.title), h("small", null, plural(d.items.length, "opção", "opções"))),
+      h("ul", null, d.items.map((it) => h("li", null, it)))))));
+
+  fill(slot, h("div", { class: "wrap" },
+    sectionHead("Cardápio", "Nossos buffets", menu.intro, "t-cardapio", true),
+    menu.packages.length > 0 && h("div", { class: "menu__packages" }, tabs, panel),
+    h("div", { class: "menu__extras" }, cocktails, info),
+    dishes));
+  paintTabs();
+  paintPanel();
+  animateOnScroll(slot);
 }
 
 function eventCard(e, extra = "") {

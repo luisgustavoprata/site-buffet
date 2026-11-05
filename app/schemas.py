@@ -612,3 +612,67 @@ class FinanceImport(Input):
     # Simulações da aba Precificação: {"name", "event_type", "guests", "safety_margin",
     # "profit_margin", "items": [{"item": "CAR001", "kind": "Comida", "per_guest": 0.12}]}
     pricing: list[dict] = Field(default_factory=list, max_length=50)
+
+
+# ---------- Cardápio ----------
+
+MenuText = Annotated[str, Field(min_length=1, max_length=200)]
+MENU_IMAGE_RE = re.compile(r"^(/static/cardapio/[\w.-]+|/media/\d+)?$")
+
+
+def _menu_image(value: str) -> str:
+    if not MENU_IMAGE_RE.match(value):
+        raise ValueError("Foto inválida.")
+    return value
+
+
+class MenuPrice(Input):
+    label: str = Field(min_length=1, max_length=30)
+    value: Annotated[float, Field(ge=0, le=100_000)]
+
+
+class MenuGroup(Input):
+    title: str = Field(default="", max_length=80)
+    items: list[MenuText] = Field(default_factory=list, max_length=200)
+
+
+class MenuSection(Input):
+    title: str = Field(min_length=1, max_length=80)
+    groups: list[MenuGroup] = Field(default_factory=list, max_length=30)
+
+
+class MenuPackage(Input):
+    name: str = Field(min_length=1, max_length=60)
+    subtitle: str = Field(default="", max_length=80)
+    description: str = Field(default="", max_length=400)
+    image: Annotated[str, AfterValidator(_menu_image)] = ""
+    prices: list[MenuPrice] = Field(default_factory=list, max_length=6)
+    sections: list[MenuSection] = Field(default_factory=list, max_length=20)
+
+
+class MenuCocktail(Input):
+    name: str = Field(min_length=1, max_length=80)
+    text: str = Field(default="", max_length=300)
+
+
+class MenuDishes(Input):
+    title: str = Field(min_length=1, max_length=80)
+    items: list[MenuText] = Field(default_factory=list, max_length=300)
+
+
+class MenuIn(Input):
+    intro: str = Field(default="", max_length=400)
+    price_note: str = Field(default="", max_length=300)
+    show_prices: bool = True
+    packages: list[MenuPackage] = Field(default_factory=list, max_length=12)
+    drinks: list[MenuText] = Field(default_factory=list, max_length=30)
+    cocktails: list[MenuCocktail] = Field(default_factory=list, max_length=40)
+    notes: list[MenuText] = Field(default_factory=list, max_length=20)
+    included: list[MenuText] = Field(default_factory=list, max_length=30)
+    dishes_note: str = Field(default="", max_length=300)
+    dishes: list[MenuDishes] = Field(default_factory=list, max_length=40)
+
+
+class MenuOut(MenuIn):
+    model_config = ConfigDict(extra="ignore")
+    updated_at: UtcDatetime | None = None

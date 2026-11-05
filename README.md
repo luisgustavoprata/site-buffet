@@ -55,6 +55,9 @@ servida pela própria API.
   (arrastando), reordenar e escolher a capa.
 - **Textos e fotos do site**: capa, biografia, história, contato e todas as fotos.
 - **Clientes**: todos os cadastrados, com contato e quantidade de pedidos.
+- **Cardápio**: os pacotes de buffet (com foto e valores por pessoa), coquetéis, o que está
+  incluso e os pratos à escolha aparecem na página inicial (menu "Cardápio"). A dona edita em
+  Gestão › Cardápio (busca de pratos, valores, fotos e a opção de esconder os valores do site).
 - **Gestão**: o que antes era a planilha de estoque, DRE e precificação, agora dentro do
   painel (computador e celular):
   - **Resumo**: receita, lucro e margem do ano, eventos, ticket por convidado, valor em
