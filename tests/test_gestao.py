@@ -241,7 +241,14 @@ def test_pricing_rejects_margin_plus_tax_of_100_percent(client, owner, gestao):
     }
     response = client.post(f"{G}/precificacao", json=payload, headers=owner)
     assert response.status_code == 422
-    assert "abaixo de 100%" in response.json()["detail"]
+    assert "no máximo até 91%" in response.json()["detail"]
+    # 100% (como na planilha) também recebe a explicação, não um erro técnico.
+    payload["profit_margin"] = 1.0
+    response = client.post(f"{G}/precificacao/calcular", json=payload, headers=owner)
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail.startswith("Margem de 100% não dá")
+    assert "use 46%" in detail
 
 
 def test_pricing_suggests_a_price(gestao):

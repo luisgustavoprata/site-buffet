@@ -19,6 +19,8 @@ MESSAGES = {
     "bool_parsing": "Use true ou false.",
     "greater_than_equal": "Deve ser maior ou igual a {ge}.",
     "less_than_equal": "Deve ser menor ou igual a {le}.",
+    "less_than": "Deve ser menor que {lt}.",
+    "greater_than": "Deve ser maior que {gt}.",
     "date_from_datetime_parsing": "Data inválida. Use AAAA-MM-DD.",
     "date_parsing": "Data inválida. Use AAAA-MM-DD.",
     "date_type": "Data inválida. Use AAAA-MM-DD.",

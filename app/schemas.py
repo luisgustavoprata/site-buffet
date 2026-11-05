@@ -579,7 +579,8 @@ class PricingIn(Input):
     event_type: str = Field(default="", max_length=40)
     guests: int = Field(ge=1, le=100_000)
     safety_margin: Annotated[float, Field(ge=0, le=2)] = 0.1
-    profit_margin: Rate = 0.2
+    # Até 1000%: a regra "margem + imposto < 100%" é conferida na rota, com uma explicação.
+    profit_margin: Annotated[float, Field(ge=0, le=10)] = 0.2
     charged_per_guest: Money | None = None
     items: list[PricingItemIn] = Field(default_factory=list, max_length=200)
 

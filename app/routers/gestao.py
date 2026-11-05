@@ -598,11 +598,15 @@ def _pricing_out(db: Session, sim: PricingSim, year: int) -> PricingOut:
 
 
 def _check_margins(db: Session, payload: PricingIn) -> None:
+    """A margem é a parte do PREÇO que vira lucro: margem + imposto precisa sobrar para o custo."""
     tax = finance.ensure_defaults(db).tax_rate
     if payload.profit_margin + tax >= 1:
+        double = (1 - tax) / 2
         raise _invalid(
-            f"Margem de lucro + impostos ({payload.profit_margin + tax:.0%}) precisa ficar abaixo "
-            f"de 100%. Com {tax:.0%} de imposto, a margem vai até {1 - tax - 0.01:.0%}."
+            f"Margem de {payload.profit_margin:.0%} não dá: a margem é a parte do preço que vira "
+            f"lucro, e com {tax:.0%} de imposto ela vai no máximo até {1 - tax - 0.01:.0%}. "
+            f"Se a ideia é o lucro ser igual ao custo (preço cerca de 2 vezes o custo), use "
+            f"{double:.0%}."
         )
 
 
