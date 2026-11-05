@@ -980,9 +980,9 @@ async function finConfig(content, reload) {
       h("p", null, "Baixe tudo em uma planilha .xlsx (abre no LibreOffice e no Excel): DRE, estoque, compras, saídas, eventos e despesas. Serve de cópia de segurança e para mandar ao contador."),
       h("div", { class: "form__actions", style: "justify-content:flex-start" },
         h("button", { class: "btn btn--primary", type: "button", onclick: exportXlsx }, "Baixar planilha (.xlsx)"),
-        h("button", { class: "btn btn--ghost", type: "button", onclick: () => importInput.click() }, "Importar a planilha antiga (.ods)"),
+        h("button", { class: "btn btn--ghost", type: "button", onclick: () => importInput.click() }, "Importar planilha (.ods)"),
         importInput),
-      h("p", { class: "field__hint" }, "A importação lê o arquivo no seu computador e substitui todos os lançamentos da gestão pelos da planilha. Use uma vez, para trazer o que você já tinha.")));
+      h("p", { class: "field__hint" }, "Aceita o modelo simples (Planilha_Brunoise_simples.ods) e a planilha antiga. A importação lê o arquivo no seu computador e substitui todos os lançamentos da gestão pelos da planilha. Use uma vez, para trazer o que você já tinha.")));
 }
 
 /* Lê a planilha antiga (abas Parâmetros, Estoque, Entradas, Saídas, Eventos e Despesas). */
@@ -1010,6 +1010,7 @@ async function readOldSpreadsheet(file) {
     return m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : String(v ?? "");
   };
   const data = (name, key = 0) => sheet(name).slice(4).filter((r) => g(r, key) !== null && !text(g(r, key)).startsWith("▸"));
+  if (wb.SheetNames.some((n) => norm(n) === "1. estoque")) return readSimple({ sheet, g, text, num, day, norm });
 
   const P = sheet("Parâmetros");
   const col = (i) => P.slice(11).map((r) => text(g(r, i))).filter(Boolean);
@@ -1041,6 +1042,37 @@ async function readOldSpreadsheet(file) {
       kind: KIND[norm(g(r, 5))] || "consumo", event: text(g(r, 6)), note: text(g(r, 11)) })),
     expenses: data("Despesas").filter((r) => g(r, 1) && g(r, 5)).map((r) => ({ date: day(r[0]), category: text(r[1]), description: text(g(r, 3)),
       supplier: text(g(r, 4)), amount: num(r[5]), payment: text(g(r, 6)), event: text(g(r, 7)) })),
+  };
+}
+
+/* O modelo simples (abas “1. Estoque” … “5. Saídas” e “Listas”): dados a partir da linha 4. */
+function readSimple({ sheet, g, text, num, day, norm }) {
+  const rows = (name, key) => sheet(name).slice(3).filter((r) => g(r, key) !== null && text(g(r, key)) !== "");
+  // “CAR001 · Picanha bovina (kg)” → CAR001; insumo novo sem código: “Nome (kg)” → Nome.
+  const refOf = (label) => {
+    const s = text(label);
+    const i = s.indexOf(" · ");
+    return i >= 0 ? s.slice(0, i) : s.replace(/\s*\([^)]*\)$/, "");
+  };
+  const L = sheet("Listas");
+  const col = (i) => L.slice(1).map((r) => text(g(r, i))).filter(Boolean);
+  const STATUS = { orcamento: "orcamento", confirmado: "confirmado", realizado: "realizado", cancelado: "cancelado" };
+  const KIND = { evento: "evento", "perda ou quebra": "perda", "consumo interno": "consumo" };
+  return {
+    config: { tax_rate: num(g(L[1] || [], 11)), income_tax_rate: num(g(L[2] || [], 11)),
+      item_categories: col(0), units: col(1), event_types: col(2), payment_methods: col(7) },
+    categories: L.slice(1).filter((r) => g(r, 5) && g(r, 6)).map((r) => ({ name: text(r[5]), group: text(r[6]) })),
+    items: rows("1. Estoque", 1).map((r) => ({ code: text(g(r, 0)), name: text(r[1]), category: text(g(r, 2)) || "Mercearia", unit: text(g(r, 3)) || "un",
+      initial_stock: num(g(r, 4)), initial_cost: num(g(r, 5)), min_stock: num(g(r, 6)), active: norm(g(r, 7)) !== "nao" })),
+    events: rows("2. Eventos", 1).map((r) => ({ code: text(g(r, 0)), event_date: day(r[1]), client: text(g(r, 2)) || "Cliente", event_type: text(g(r, 3)) || "Outro",
+      guests: Math.max(1, Math.round(num(g(r, 4)))), price_per_guest: num(g(r, 5)), discount: num(g(r, 6)), status: STATUS[norm(g(r, 7))] || "confirmado" })),
+    expenses: rows("3. Despesas", 1).filter((r) => g(r, 3)).map((r) => ({ date: day(r[0]), category: text(r[1]), description: text(g(r, 2)),
+      amount: num(r[3]), payment: text(g(r, 4)), event: refOf(g(r, 5)), supplier: "" })),
+    stock_in: rows("4. Compras", 1).filter((r) => g(r, 3)).map((r) => ({ date: day(r[0]), item: refOf(r[1]), quantity: num(r[3]), unit_cost: num(g(r, 4)),
+      supplier: text(g(r, 6)), invoice: text(g(r, 7)) })),
+    stock_out: rows("5. Saídas", 1).filter((r) => g(r, 3)).map((r) => ({ date: day(r[0]), item: refOf(r[1]), quantity: num(r[3]),
+      kind: KIND[norm(g(r, 4))] || "consumo", event: refOf(g(r, 5)), note: text(g(r, 6)) })),
+    pricing: [],
   };
 }
 
